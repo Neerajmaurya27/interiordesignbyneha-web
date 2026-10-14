@@ -2,7 +2,8 @@
 /**
  * Text-like form field: label above, optional hint, error in words linked via aria-describedby.
  * 52px tall, paper background, field-border outline. Keep fields on paper or limewash (the border
- * fails contrast on stone).
+ * fails contrast on stone). The error element is always referenced, so errors added later by
+ * script are announced too (an empty, hidden element adds nothing to the description).
  */
 import type { HTMLAttributes } from 'astro/types';
 
@@ -10,8 +11,8 @@ type Props = Omit<HTMLAttributes<'input'>, 'id' | 'name'> & {
   id: string;
   name: string;
   label: string;
-  hint?: string;
-  error?: string;
+  hint?: string | undefined;
+  error?: string | undefined;
   optional?: boolean;
   multiline?: boolean;
   rows?: number;
@@ -27,13 +28,14 @@ const {
   multiline = false,
   rows = 5,
   required,
+  value,
   class: className,
   ...rest
 } = Astro.props;
 
 const hintId = hint ? `${id}-hint` : undefined;
 const errorId = `${id}-error`;
-const describedBy = [hintId, error ? errorId : undefined].filter(Boolean).join(' ') || undefined;
+const describedBy = [hintId, errorId].filter(Boolean).join(' ');
 
 const control = [
   'block w-full bg-paper text-espresso border border-field-border rounded-button px-4',
@@ -45,7 +47,7 @@ const control = [
 <div class:list={['flex flex-col gap-2', className]} data-field={name}>
   <label for={id} class="font-medium">
     {label}
-    {optional && <span class="text-taupe font-normal"> (optional)</span>}
+    {optional && <span class="font-normal text-taupe"> (optional)</span>}
   </label>
   {hint && (
     <p id={hintId} class="text-caption text-taupe">
@@ -54,7 +56,7 @@ const control = [
   )}
   <p
     id={errorId}
-    class="text-caption text-terracotta font-medium"
+    class="text-caption font-medium text-terracotta"
     data-error-for={name}
     hidden={!error}
   >
@@ -69,6 +71,7 @@ const control = [
       aria-describedby={describedBy}
       aria-invalid={error ? 'true' : undefined}
       required={required}
+      set:text={typeof value === 'string' ? value : ''}
     />
   ) : (
     <input
@@ -78,6 +81,7 @@ const control = [
       aria-describedby={describedBy}
       aria-invalid={error ? 'true' : undefined}
       required={required}
+      value={value}
       {...rest}
     />
   )}

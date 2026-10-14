@@ -1,0 +1,46 @@
+---
+/** /enquire/thank-you — what happens next. Only verified promises are made [V14]. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TextLink from '../../components/ui/TextLink.astro';
+import WhatsAppLink from '../../components/site/WhatsAppLink.astro';
+import { site } from '../../data/site';
+import { routeExists } from '../../lib/routes';
+
+const title = 'Thank you';
+const whatsapp = site.offices.filter((o) => o.whatsapp);
+const link = 'underline decoration-1 underline-offset-[0.2em] hover:decoration-2';
+---
+
+<BaseLayout
+  title={`${title} | ${site.name}`}
+  description="Your enquiry has reached the studio."
+  pageName="Thank you"
+  noindex
+  enquiryBar={false}
+>
+  <div class="grid-page gap-y-8 pt-16 pb-(--spacing-section) desktop:pt-24">
+    <div class="col-span-full flex flex-col gap-6 desktop:col-span-7">
+      <h1>{title}</h1>
+      <p class="type-statement">Your enquiry has reached the studio.</p>
+      <p>A confirmation has been sent to the email address you gave us.</p>
+      {site.replyPromise && <p>{site.replyPromise}</p>}
+      {whatsapp.length > 0 && (
+        <p>
+          If it is easier to talk, message us on{' '}
+          {whatsapp.map((office, i) => (
+            <>
+              {i > 0 && ' or '}
+              <WhatsAppLink region={office.region} from="Thank-you page" class={link} />
+            </>
+          ))}
+          .
+        </p>
+      )}
+      {routeExists('/projects') && (
+        <p>
+          In the meantime, <TextLink href="/projects">see our projects</TextLink>.
+        </p>
+      )}
+    </div>
+  </div>
+</BaseLayout>

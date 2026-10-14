@@ -1,0 +1,13 @@
+---
+/** Error message for a group of choices, referenced by the fieldset's aria-describedby. */
+interface Props {
+  name: string;
+  error?: string | undefined;
+}
+
+const { name, error } = Astro.props;
+---
+
+<p id={`${name}-error`} class="text-caption font-medium text-terracotta" hidden={!error}>
+  {error && <>Error: {error}</>}
+</p>

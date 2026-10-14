@@ -1,0 +1,372 @@
+---
+/**
+ * Enquiry form (brief §12). Single column, labels above, reasons shown, choice cards for
+ * selections, errors in words linked to their fields and gathered in a summary that receives
+ * focus. Works without JavaScript (plain POST to /enquire, re-rendered with the typed values on
+ * error); src/scripts/enquiry-form.ts adds conditional questions and in-place submission.
+ * No animation on this page.
+ */
+import Field from '../ui/Field.astro';
+import ChoiceCard from '../ui/ChoiceCard.astro';
+import Button from '../ui/Button.astro';
+import TextLink from '../ui/TextLink.astro';
+import FieldsetError from './FieldsetError.astro';
+import {
+  budgetBandsFor,
+  LOCATIONS,
+  PROJECT_TYPES,
+  servicesFor,
+  SERVICE_CHOICES,
+  SOURCES,
+  TIMINGS,
+  type EnquiryConfig,
+} from '../../lib/enquiry-schema';
+import type { FieldErrors } from '../../lib/enquiry';
+import { site } from '../../data/site';
+
+interface Props {
+  config: EnquiryConfig;
+  values: Record<string, unknown>;
+  errors: FieldErrors;
+  /** A form-level message (retry / failure) shown in the summary. */
+  formMessage: string | null;
+  /** Milliseconds since epoch when the form was rendered (minimum time-to-submit check). */
+  renderedAt: number;
+  turnstileSiteKey: string | null;
+  privacyHref: string | null;
+}
+
+const { config, values, errors, formMessage, renderedAt, turnstileSiteKey, privacyHref } =
+  Astro.props;
+
+const str = (key: string) => (typeof values[key] === 'string' ? (values[key] as string) : '');
+const list = (key: string) =>
+  Array.isArray(values[key]) ? (values[key] as string[]) : str(key) ? [str(key)] : [];
+
+const location = str('location') as keyof typeof LOCATIONS | '';
+const allServices = servicesFor('', config);
+const showServices = allServices.length > 1;
+const sizeBands = config.bands.sizeSqft ?? [];
+const inrBands = budgetBandsFor('mumbai', config);
+const aedBands = budgetBandsFor('dubai', config);
+const showBudget = inrBands.length > 0 || aedBands.length > 0;
+
+const errorEntries = Object.entries(errors);
+const hasSummary = errorEntries.length > 0 || formMessage !== null;
+
+/** Fields whose error should link to the first control of a fieldset. */
+const anchorFor = (field: string) =>
+  ({
+    projectType: 'projectType-apartment',
+    location: 'location-mumbai',
+    timing: 'timing-within-3',
+    services: `services-${allServices[0]}`,
+    size: 'size-0',
+    budget: 'budget-inr-0',
+    consent: 'consent',
+  })[field] ?? field;
+---
+
+<form
+  method="post"
+  action="/enquire"
+  novalidate
+  class="flex flex-col gap-10"
+  data-enquiry-form
+  data-services={JSON.stringify(config.servicesByCity)}
+>
+  <div
+    class:list={[
+      'error-summary flex flex-col gap-3 border-2 border-terracotta bg-paper p-6',
+      !hasSummary && 'hidden',
+    ]}
+    tabindex="-1"
+    data-error-summary
+    aria-labelledby="error-summary-title"
+    role="region"
+  >
+    <h2 id="error-summary-title" class="text-h3 font-sans font-medium">
+      There is a problem
+    </h2>
+    {formMessage && <p data-form-message>{formMessage}</p>}
+    <ul class="flex flex-col gap-1" data-error-list>
+      {errorEntries.map(([field, message]) => (
+        <li>
+          <a href={`#${anchorFor(field)}`} class="text-terracotta underline">
+            {message}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  <!-- Spam protection: a field people never see, and the time the form was shown. -->
+  <div class="hidden" aria-hidden="true">
+    <label for="website">Leave this field empty</label>
+    <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+  </div>
+  <input type="hidden" name="renderedAt" value={renderedAt} />
+  {['sourcePage', 'project', 'referrer', 'utmSource', 'utmMedium', 'utmCampaign'].map((name) => (
+    <input type="hidden" {name} value={str(name)} />
+  ))}
+
+  <div class="flex flex-col gap-6">
+    <Field
+      id="name"
+      name="name"
+      label="Full name"
+      autocomplete="name"
+      required
+      value={str('name')}
+      error={errors.name}
+    />
+    <Field
+      id="email"
+      name="email"
+      type="email"
+      label="Email"
+      autocomplete="email"
+      inputmode="email"
+      required
+      value={str('email')}
+      error={errors.email}
+    />
+    <Field
+      id="phone"
+      name="phone"
+      type="tel"
+      label="Phone or WhatsApp"
+      hint="Include the country code, for example +91 for India or +971 for the UAE."
+      autocomplete="tel"
+      inputmode="tel"
+      required
+      value={str('phone')}
+      error={errors.phone}
+    />
+  </div>
+
+  <fieldset
+    class="flex flex-col gap-3"
+    aria-describedby="projectType-error"
+    data-group="projectType"
+  >
+    <legend class="mb-2 font-medium">Type of project</legend>
+    <FieldsetError name="projectType" error={errors.projectType} />
+    <div class="grid gap-3 tablet:grid-cols-2">
+      {Object.entries(PROJECT_TYPES).map(([value, label]) => (
+        <ChoiceCard
+          name="projectType"
+          {value}
+          {label}
+          checked={str('projectType') === value}
+          required
+        />
+      ))}
+    </div>
+  </fieldset>
+
+  <fieldset class="flex flex-col gap-3" aria-describedby="location-error" data-group="location">
+    <legend class="mb-2 font-medium">Where is the project?</legend>
+    <FieldsetError name="location" error={errors.location} />
+    <div class="grid gap-3 tablet:grid-cols-2">
+      {Object.entries(LOCATIONS).map(([value, label]) => (
+        <ChoiceCard name="location" {value} {label} checked={location === value} required />
+      ))}
+    </div>
+    <div data-show-when-location="elsewhere">
+      <Field
+        id="locationOther"
+        name="locationOther"
+        label="City and country"
+        hint="Only needed if the project is elsewhere."
+        autocomplete="address-level2"
+        value={str('locationOther')}
+        error={errors.locationOther}
+      />
+    </div>
+  </fieldset>
+
+  {sizeBands.length > 0 && (
+    <fieldset class="flex flex-col gap-3" aria-describedby="size-error" data-group="size">
+      <legend class="mb-2 font-medium">
+        Approximate size <span class="font-normal text-taupe">(optional)</span>
+      </legend>
+      <FieldsetError name="size" error={errors.size} />
+      <div class="grid gap-3 tablet:grid-cols-3">
+        {sizeBands.map((band, i) => (
+          <ChoiceCard
+            name="size"
+            value={band}
+            label={band}
+            id={`size-${i}`}
+            checked={str('size') === band}
+          />
+        ))}
+      </div>
+    </fieldset>
+  )}
+
+  {showBudget && (
+    <fieldset
+      class="flex flex-col gap-3"
+      aria-describedby="budget-error budget-hint"
+      data-group="budget"
+    >
+      <legend class="mb-2 font-medium">
+        Budget <span class="font-normal text-taupe">(optional)</span>
+      </legend>
+      <p id="budget-hint" class="text-caption text-taupe">
+        This helps us prepare for our first conversation.
+      </p>
+      <FieldsetError name="budget" error={errors.budget} />
+      {inrBands.length > 0 && (
+        <div class="grid gap-3 tablet:grid-cols-2" data-budget-currency="inr">
+          {inrBands.map((band, i) => (
+            <ChoiceCard
+              name="budget"
+              value={band}
+              label={band}
+              id={`budget-inr-${i}`}
+              checked={str('budget') === band}
+            />
+          ))}
+        </div>
+      )}
+      {aedBands.length > 0 && (
+        <div class="grid gap-3 tablet:grid-cols-2" data-budget-currency="aed">
+          {aedBands.map((band, i) => (
+            <ChoiceCard
+              name="budget"
+              value={band}
+              label={band}
+              id={`budget-aed-${i}`}
+              checked={str('budget') === band}
+            />
+          ))}
+        </div>
+      )}
+    </fieldset>
+  )}
+
+  {showServices && (
+    <fieldset
+      class="flex flex-col gap-3"
+      aria-describedby="services-error services-hint"
+      data-group="services"
+    >
+      <legend class="mb-2 font-medium">
+        Services you are looking for <span class="font-normal text-taupe">(optional)</span>
+      </legend>
+      <p id="services-hint" class="text-caption text-taupe">
+        Only services we offer in the chosen city are listed.
+      </p>
+      <FieldsetError name="services" error={errors.services} />
+      <div class="grid gap-3 tablet:grid-cols-2">
+        {allServices.map((value) => (
+          <div data-service-option={value}>
+            <ChoiceCard
+              type="checkbox"
+              name="services"
+              {value}
+              label={SERVICE_CHOICES[value]}
+              checked={list('services').includes(value)}
+            />
+          </div>
+        ))}
+      </div>
+    </fieldset>
+  )}
+
+  <fieldset class="flex flex-col gap-3" aria-describedby="timing-error" data-group="timing">
+    <legend class="mb-2 font-medium">When would you like to start?</legend>
+    <FieldsetError name="timing" error={errors.timing} />
+    <div class="grid gap-3 tablet:grid-cols-2">
+      {Object.entries(TIMINGS).map(([value, label]) => (
+        <ChoiceCard name="timing" {value} {label} checked={str('timing') === value} required />
+      ))}
+    </div>
+  </fieldset>
+
+  <Field
+    id="message"
+    name="message"
+    label="Tell us about your project"
+    hint="The home, the people who will live in it, anything you already know you want."
+    optional
+    multiline
+    rows={6}
+    value={str('message')}
+    error={errors.message}
+  />
+
+  <div class="flex flex-col gap-2">
+    <label for="source" class="font-medium">
+      How did you hear about us? <span class="font-normal text-taupe">(optional)</span>
+    </label>
+    <select
+      id="source"
+      name="source"
+      class="h-(--field-height) w-full rounded-button border border-field-border bg-paper px-4"
+    >
+      <option value="">Choose an option</option>
+      {Object.entries(SOURCES).map(([value, label]) => (
+        <option {value} selected={str('source') === value}>
+          {label}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  <fieldset class="flex flex-col gap-4" aria-describedby="consent-error">
+    <legend class="sr-only">Consent</legend>
+    <FieldsetError name="consent" error={errors.consent} />
+    <label for="consent" class="flex cursor-pointer items-start gap-3">
+      <input
+        id="consent"
+        name="consent"
+        type="checkbox"
+        value="yes"
+        required
+        checked={str('consent') === 'yes'}
+        aria-invalid={errors.consent ? 'true' : undefined}
+        class="mt-1 size-5 shrink-0 accent-terracotta"
+      />
+      <span>
+        I agree to {site.name} using these details to respond to my enquiry, as described in the{' '}
+        {privacyHref ? <TextLink href={privacyHref}>Privacy Notice</TextLink> : 'Privacy Notice'}.
+      </span>
+    </label>
+    <label for="marketing" class="flex cursor-pointer items-start gap-3">
+      <input
+        id="marketing"
+        name="marketing"
+        type="checkbox"
+        value="yes"
+        checked={str('marketing') === 'yes'}
+        class="mt-1 size-5 shrink-0 accent-terracotta"
+      />
+      <span>
+        Occasionally send me news of completed projects. <span class="text-taupe">(optional)</span>
+      </span>
+    </label>
+  </fieldset>
+
+  {turnstileSiteKey && (
+    <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="light" />
+  )}
+
+  <div class="flex flex-col gap-4 tablet:flex-row tablet:items-center">
+    <Button type="submit" class="w-full tablet:w-auto" data-submit>
+      Send enquiry
+    </Button>
+    <p class="text-caption text-taupe" aria-live="polite" data-submit-status></p>
+  </div>
+</form>
+
+{turnstileSiteKey && (
+  <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+)}
+
+<script>
+  import '../../scripts/enquiry-form';
+</script>

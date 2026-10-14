@@ -7,6 +7,9 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: 'tests/e2e',
   fullyParallel: true,
+  // The dev server renders /enquire through the Workers runtime; more than two parallel workers
+  // overload it on a 4-core machine and cause timeouts.
+  workers: 2,
   forbidOnly: !!process.env.CI,
   retries: 0,
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
@@ -19,7 +22,7 @@ export default defineConfig({
     command: 'pnpm exec astro dev --port 4321 --ignore-lock',
     url: 'http://localhost:4321/dev/layout',
     reuseExistingServer: !process.env.CI,
-    env: { ASTRO_TELEMETRY_DISABLED: '1', E2E: '1' },
+    env: { ASTRO_TELEMETRY_DISABLED: '1', E2E: '1', ENQUIRY_MOCK: 'true' },
     timeout: 120_000,
   },
   projects: [

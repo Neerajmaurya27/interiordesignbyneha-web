@@ -12,10 +12,14 @@ export interface Loaded<T> {
 
 type PageEntry = CollectionEntry<'pages'> | CollectionEntry<'pageFixtures'>;
 
-export async function getPage(id: 'approach' | 'studio'): Promise<Loaded<PageEntry> | null> {
+export async function getPage(
+  id: 'approach' | 'studio' | 'privacy',
+): Promise<Loaded<PageEntry> | null> {
   const real = await getEntry('pages', id);
   if (real?.data.published) return { value: real, isFixture: false };
   if (!import.meta.env.DEV) return null;
+  // In development an unpublished draft is shown (marked), before falling back to a fixture.
+  if (real) return { value: real, isFixture: true };
   const fixture = await getEntry('pageFixtures', id);
   return fixture ? { value: fixture, isFixture: true } : null;
 }

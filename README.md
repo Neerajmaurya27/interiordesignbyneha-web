@@ -12,19 +12,19 @@ The full plan, including the register of facts still to be verified, is in
 
 ## Commands
 
-| Command             | What it does                                                                |
-| ------------------- | --------------------------------------------------------------------------- |
-| `pnpm dev`          | Dev server at http://localhost:4321; tokens at `/dev/tokens`                |
-| `pnpm build`        | Production build to `dist/`, then the placeholder guard                     |
-| `pnpm preview`      | Serve the production build                                                  |
-| `pnpm check`        | Astro + TypeScript type check                                               |
-| `pnpm lint`         | ESLint (TypeScript, Astro, jsx-a11y strict)                                 |
-| `pnpm format:check` | Prettier                                                                    |
-| `pnpm test`         | Unit tests (Vitest), including token contrast checks                        |
-| `pnpm test:e2e`     | Playwright end-to-end tests (starts the dev server)                         |
-| `pnpm launch:check` | After a build: fails until the home page has a real hero and published work |
-| `pnpm assets`       | Asset inventory per project (`--fixtures` for a dry run)                    |
-| `pnpm verify`       | Everything above, as CI runs it                                             |
+| Command             | What it does                                                                              |
+| ------------------- | ----------------------------------------------------------------------------------------- |
+| `pnpm dev`          | Dev server at http://localhost:4321; tokens at `/dev/tokens`                              |
+| `pnpm build`        | Production build to `dist/`, then the placeholder guard                                   |
+| `pnpm preview`      | Serve the production build                                                                |
+| `pnpm check`        | Astro + TypeScript type check                                                             |
+| `pnpm lint`         | ESLint (TypeScript, Astro, jsx-a11y strict)                                               |
+| `pnpm format:check` | Prettier                                                                                  |
+| `pnpm test`         | Unit tests (Vitest), including token contrast checks                                      |
+| `pnpm test:e2e`     | Playwright end-to-end tests (starts the dev server)                                       |
+| `pnpm launch:check` | After a build: fails until hero, published work, enquiry form and privacy notice are live |
+| `pnpm assets`       | Asset inventory per project (`--fixtures` for a dry run)                                  |
+| `pnpm verify`       | Everything above, as CI runs it                                                           |
 
 ## Design system
 
@@ -72,6 +72,18 @@ The full plan, including the register of facts still to be verified, is in
 - Sections render only with confirmed content: services per city (`servicesByCity` in
   `src/data/site.ts`), process (`src/data/home.ts`), FAQ (`src/content/faq`), team with consent
   (`src/content/team`), craft partners (`craftPartners` in `site.ts`) and verified press.
+
+## Enquiry form
+
+- `/enquire` is the only on-demand route (Cloudflare Worker); everything else is prerendered.
+  It works without JavaScript (plain POST, re-rendered with errors) and with it (in-page send).
+- Order of checks: honeypot → validation → minimum time to submit → Turnstile → studio email and
+  lead store (either one succeeding keeps the lead) → confirmation to the enquirer.
+- Configure with the variables in `.env.example`. Until `PUBLIC_ENQUIRY_ENABLED=true` and the
+  services are set, nothing links to `/enquire` and it answers 404.
+- Local development: `ENQUIRY_MOCK=true pnpm dev` logs enquiries instead of sending them.
+- `pnpm build && pnpm preview` runs the production build in the Workers runtime (put secrets in
+  `.dev.vars`).
 
 ## Content rules
 

@@ -120,3 +120,14 @@ export const sampleCraftPartners = [
   { name: 'Workshop name [VERIFY]', craft: 'Stone [VERIFY]', city: 'Mumbai' },
   { name: 'Workshop name [VERIFY]', craft: 'Upholstery [VERIFY]', city: 'Dubai' },
 ];
+
+/** Sample enquiry bands, for laying out the form only [V15]. */
+export const sampleEnquiryBands = {
+  sizeSqft: [
+    'Under 3,000 sq ft [VERIFY]',
+    '3,000–5,000 sq ft [VERIFY]',
+    'Over 5,000 sq ft [VERIFY]',
+  ],
+  budgetINR: ['Band one, INR [VERIFY]', 'Band two, INR [VERIFY]'],
+  budgetAED: ['Band one, AED [VERIFY]', 'Band two, AED [VERIFY]'],
+};

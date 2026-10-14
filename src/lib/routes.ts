@@ -50,6 +50,9 @@ const contentGates: Record<string, boolean> = {
   '/projects/[slug]': hasPublishedProjects,
   '/approach': isPublishedPage(pageSources['/src/content/pages/approach.md']),
   '/studio': isPublishedPage(pageSources['/src/content/pages/studio.md']),
+  '/privacy': isPublishedPage(pageSources['/src/content/pages/privacy.md']),
+  // The enquiry form is linked only once its accounts are live (set at build time) [V25].
+  '/enquire': import.meta.env.PUBLIC_ENQUIRY_ENABLED === 'true',
 };
 
 /** Converts src/pages file paths to route paths. Dynamic segments become "[param]". */

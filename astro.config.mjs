@@ -1,5 +1,6 @@
 // @ts-check
-import { defineConfig, fontProviders } from 'astro/config';
+import { defineConfig, envField, fontProviders } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
 
 // The production domain is not confirmed yet [V18]; set SITE_URL in the environment.
@@ -22,7 +23,57 @@ function devOnlyRoutes() {
 
 export default defineConfig({
   site,
+  // Every page is prerendered except /enquire, which handles the enquiry POST on Cloudflare.
   output: 'static',
+  adapter: cloudflare({
+    // Images are optimised at build time with Sharp; pages prerender in Node.
+    imageService: 'compile',
+    prerenderEnvironment: 'node',
+  }),
+  env: {
+    schema: {
+      /** Build-time switch: link to /enquire only once the accounts below are live [V25]. */
+      PUBLIC_ENQUIRY_ENABLED: envField.boolean({
+        context: 'client',
+        access: 'public',
+        default: false,
+      }),
+      PUBLIC_TURNSTILE_SITE_KEY: envField.string({
+        context: 'client',
+        access: 'public',
+        optional: true,
+      }),
+      TURNSTILE_SECRET_KEY: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+      RESEND_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+      ENQUIRY_TO_EMAIL: envField.string({ context: 'server', access: 'secret', optional: true }),
+      ENQUIRY_FROM_EMAIL: envField.string({ context: 'server', access: 'secret', optional: true }),
+      LEAD_STORE: envField.enum({
+        context: 'server',
+        access: 'secret',
+        values: ['sheets', 'crm', 'none'],
+        default: 'none',
+      }),
+      GOOGLE_SHEETS_ID: envField.string({ context: 'server', access: 'secret', optional: true }),
+      GOOGLE_SA_EMAIL: envField.string({ context: 'server', access: 'secret', optional: true }),
+      GOOGLE_SA_PRIVATE_KEY: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+      CRM_WEBHOOK_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
+      PRIVACY_NOTICE_VERSION: envField.string({
+        context: 'server',
+        access: 'public',
+        default: 'draft',
+      }),
+      /** Development only: skip external services and log enquiries to the console. */
+      ENQUIRY_MOCK: envField.boolean({ context: 'server', access: 'public', default: false }),
+    },
+  },
   integrations: [devOnlyRoutes()],
   // The dev toolbar adds its own controls (including a "Menu" button); keep it out of e2e runs.
   devToolbar: { enabled: process.env.E2E !== '1' },

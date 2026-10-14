@@ -100,6 +100,20 @@ export const servicesByCity: Record<Region, ServiceId[]> = {
   dubai: [], // [V4]
 };
 
+/**
+ * Enquiry answer bands [V15]. Null until Neha confirms them; the size and budget questions are
+ * hidden while null. INR bands show for Mumbai/elsewhere, AED for Dubai, both for "Both".
+ */
+export const enquiryBands: {
+  sizeSqft: string[] | null;
+  budgetINR: string[] | null;
+  budgetAED: string[] | null;
+} = {
+  sizeSqft: null, // [V15]
+  budgetINR: null, // [V15]
+  budgetAED: null, // [V15]
+};
+
 /** Workshops and makers named on /studio, each with consent [V24]. */
 export const craftPartners: { name: string; craft: string; city: string }[] = [];
 

@@ -1,0 +1,15 @@
+{
+  // Cloudflare Workers + static assets. The Astro adapter generates the deploy config from this
+  // file (dist/client/wrangler.json): prerendered pages are served as assets, and only /enquire
+  // runs in the Worker. Secrets are set with `wrangler secret put <NAME>` (see .env.example).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "interiordesignbyneha-web",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "observability": { "enabled": true },
+  "vars": {
+    "LEAD_STORE": "none",
+    "PRIVACY_NOTICE_VERSION": "draft",
+  },
+}

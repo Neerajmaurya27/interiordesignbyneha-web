@@ -1,0 +1,156 @@
+---
+/**
+ * /enquire — the only on-demand route. GET renders the form (prefilled from ?type=&city=&project=
+ * and UTM parameters); POST handles a submission: with Accept: application/json it answers the
+ * in-page script, otherwise it redirects to the thank-you page (303) or re-renders the form with
+ * the typed values and errors, so it works without JavaScript.
+ * In production the page exists only once PUBLIC_ENQUIRY_ENABLED is set and the services are
+ * configured; otherwise it renders the 404 page.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EnquiryForm from '../../components/enquire/EnquiryForm.astro';
+import ContactPanel from '../../components/enquire/ContactPanel.astro';
+import DevPreviewNotice from '../../components/ui/DevPreviewNotice.astro';
+import NotFound from '../../components/site/NotFound.astro';
+import { PUBLIC_ENQUIRY_ENABLED, PUBLIC_TURNSTILE_SITE_KEY } from 'astro:env/client';
+import { site } from '../../data/site';
+import { handleEnquiry, type FieldErrors } from '../../lib/enquiry';
+import {
+  enquiryDeps,
+  getEnquiryConfig,
+  isEnquiryConfigured,
+  isMockMode,
+} from '../../lib/enquiry-services';
+import { ENQUIRY_TYPE } from '../../lib/project-rules';
+import { routeExists } from '../../lib/routes';
+
+export const prerender = false;
+
+const configured = isEnquiryConfigured();
+const available = import.meta.env.DEV || (PUBLIC_ENQUIRY_ENABLED && configured);
+
+Astro.response.headers.set('Cache-Control', 'no-store');
+if (!available) Astro.response.status = 404;
+const { config, usesSample } = await getEnquiryConfig();
+const THANK_YOU = '/enquire/thank-you';
+
+let values: Record<string, unknown>;
+let errors: FieldErrors = {};
+let formMessage: string | null = null;
+
+if (available && Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const ip = Astro.request.headers.get('cf-connecting-ip');
+  let result: Awaited<ReturnType<typeof handleEnquiry>>;
+  try {
+    result = await handleEnquiry(form, enquiryDeps(config), ip);
+  } catch (error) {
+    // Never answer with a bare 500: keep the typed values and offer the other ways to reach us.
+    console.error('[enquiry] Unexpected error', error);
+    const raw = Object.fromEntries(form.entries());
+    delete raw.website;
+    delete raw.renderedAt;
+    delete raw['cf-turnstile-response'];
+    result = { status: 'failed', values: raw };
+  }
+  const wantsJson = Astro.request.headers.get('accept')?.includes('application/json');
+
+  if (wantsJson) {
+    const body =
+      result.status === 'ok'
+        ? { status: 'ok', redirect: THANK_YOU }
+        : result.status === 'invalid'
+          ? { status: 'invalid', errors: result.errors }
+          : result.status === 'retry'
+            ? { status: 'retry', message: result.message }
+            : { status: 'failed' };
+    const code = { ok: 200, invalid: 422, retry: 409, failed: 502 }[result.status];
+    return new Response(JSON.stringify(body), {
+      status: code,
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+    });
+  }
+
+  if (result.status === 'ok') return Astro.redirect(THANK_YOU, 303);
+  values = result.values;
+  if (result.status === 'invalid') errors = result.errors;
+  if (result.status === 'retry') formMessage = result.message;
+  if (result.status === 'failed') {
+    formMessage =
+      'Your enquiry could not be sent just now. Nothing you typed has been lost: please try again in a moment, or contact us directly using the details on this page.';
+  }
+  Astro.response.status = result.status === 'failed' ? 502 : 422;
+} else {
+  // Prefill from a case study or campaign link.
+  const q = Astro.url.searchParams;
+  const typeParam = q.get('type') ?? '';
+  const city = q.get('city') ?? '';
+  const project = q.get('project') ?? '';
+  const knownTypes = new Set(Object.values(ENQUIRY_TYPE).concat(['collaboration']));
+  const referrer = Astro.request.headers.get('referer') ?? '';
+  let sourcePage = '';
+  try {
+    const ref = new URL(referrer);
+    if (ref.host === Astro.url.host) sourcePage = ref.pathname;
+  } catch {
+    // No or invalid referrer.
+  }
+  values = {
+    projectType: knownTypes.has(typeParam) ? typeParam : '',
+    location: ['mumbai', 'dubai'].includes(city) ? city : '',
+    project: /^[a-z0-9-]{1,80}$/.test(project) ? project : '',
+    sourcePage,
+    referrer: sourcePage ? '' : referrer.slice(0, 500),
+    utmSource: q.get('utm_source')?.slice(0, 100) ?? '',
+    utmMedium: q.get('utm_medium')?.slice(0, 100) ?? '',
+    utmCampaign: q.get('utm_campaign')?.slice(0, 100) ?? '',
+  };
+}
+
+const turnstileSiteKey = isMockMode() ? null : (PUBLIC_TURNSTILE_SITE_KEY ?? null);
+const privacyHref = routeExists('/privacy') ? '/privacy' : null;
+const title = 'Discuss your project';
+---
+
+{!available ? (
+  <NotFound />
+) : (
+  <BaseLayout
+    title={`${title} | ${site.name}`}
+    description={`Tell ${site.name} about your home in Mumbai, Dubai or elsewhere.`}
+    pageName={title}
+    enquiryBar={false}
+  >
+    <div class="grid-page gap-y-12 pt-16 pb-(--spacing-section) desktop:pt-24">
+      <header class="col-span-full flex flex-col gap-4 desktop:col-span-7">
+        <h1>{title}</h1>
+        <p class="type-statement">Tell us a little about your home.</p>
+        <p class="text-taupe">Questions marked optional can be left blank.</p>
+      </header>
+
+      <div class="col-span-full desktop:col-span-7">
+        {import.meta.env.DEV && !configured && (
+          <p class="mb-8 bg-olive p-4 text-paper">
+            Development: no enquiry services are configured. Set ENQUIRY_MOCK=true to try the form.
+          </p>
+        )}
+        <EnquiryForm
+          {config}
+          {values}
+          {errors}
+          {formMessage}
+          renderedAt={Date.now()}
+          {turnstileSiteKey}
+          {privacyHref}
+        />
+      </div>
+
+      <div class="col-span-full desktop:col-span-4 desktop:col-start-9" data-enquiry-fallback>
+        <div class="desktop:sticky desktop:top-[calc(var(--header-height)+2rem)]">
+          <ContactPanel pageTitle={title} />
+        </div>
+      </div>
+    </div>
+    {usesSample && <DevPreviewNotice />}
+  </BaseLayout>
+)}

@@ -1,0 +1,38 @@
+---
+/**
+ * Direct contact beside the form (brief §12): WhatsApp for each city, phone, studio email and the
+ * reply promise — verified details only. Also shown as the fallback when sending fails.
+ */
+import OfficeContacts from '../site/OfficeContacts.astro';
+import { site } from '../../data/site';
+
+interface Props {
+  pageTitle: string;
+}
+
+const { pageTitle } = Astro.props;
+const hasDirect = site.offices.some((o) => o.whatsapp || o.phone || o.email) || !!site.email;
+---
+
+<aside aria-labelledby="contact-heading" class="flex flex-col gap-6 border-t border-hairline pt-6">
+  <h2 id="contact-heading" class="type-label font-sans text-taupe">
+    Prefer to talk?
+  </h2>
+  {hasDirect ? (
+    <OfficeContacts {pageTitle} />
+  ) : (
+    <p class="text-taupe">Mumbai and Dubai, by appointment.</p>
+  )}
+  {site.email && (
+    <p>
+      <a
+        href={`mailto:${site.email}`}
+        class="underline decoration-1 underline-offset-[0.2em]"
+        data-analytics="email_click"
+      >
+        {site.email}
+      </a>
+    </p>
+  )}
+  {site.replyPromise && <p class="text-caption text-taupe">{site.replyPromise}</p>}
+</aside>
