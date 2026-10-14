@@ -1,0 +1,160 @@
+@import 'tailwindcss';
+@import './tokens.css';
+@import './motion.css';
+
+@layer base {
+  :root {
+    --header-height: 3.5rem;
+    color-scheme: light;
+  }
+
+  @media (min-width: 64rem) {
+    :root {
+      --header-height: 4.5rem;
+    }
+  }
+
+  html {
+    background-color: var(--color-limewash);
+    color: var(--color-espresso);
+    font-family: var(--font-sans);
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* Keeps anchored and focused content clear of the sticky header (WCAG 2.4.11). */
+    scroll-padding-block-start: calc(var(--header-height) + 1rem);
+  }
+
+  body {
+    min-block-size: 100svh;
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 350;
+    font-variation-settings:
+      'opsz' 144,
+      'SOFT' 50,
+      'WONK' 0;
+  }
+
+  h1 {
+    font-size: var(--text-h1);
+    line-height: var(--text-h1--line-height);
+  }
+
+  h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+  }
+
+  h3 {
+    font-size: var(--text-h3);
+    line-height: var(--text-h3--line-height);
+    font-weight: 500;
+  }
+
+  p,
+  li {
+    max-inline-size: var(--container-text);
+  }
+
+  img,
+  picture,
+  video,
+  svg {
+    display: block;
+    max-inline-size: 100%;
+  }
+
+  img {
+    block-size: auto;
+    background-color: var(--color-stone); /* placeholder while loading */
+  }
+
+  a {
+    color: inherit;
+  }
+
+  /* Focus is always visible: 2px terracotta ring, 2px offset. Never remove it. */
+  :focus-visible {
+    outline: 2px solid var(--color-terracotta);
+    outline-offset: 2px;
+  }
+
+  /* On espresso bands the ring switches to sand (terracotta fails on espresso). */
+  .on-espresso :focus-visible,
+  .on-espresso:focus-visible {
+    outline-color: var(--color-sand);
+  }
+}
+
+@layer components {
+  /*
+   * Page grid: 4 columns (mobile), 8 (tablet), 12 (desktop/wide).
+   * Children place themselves with col-span-* / col-start-* utilities.
+   */
+  .grid-page {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: 1rem;
+    padding-inline: 1.25rem;
+    max-inline-size: var(--container-cap);
+    margin-inline: auto;
+  }
+
+  @media (min-width: 37.5rem) {
+    .grid-page {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      column-gap: 1.5rem;
+      padding-inline: 2rem;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .grid-page {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      padding-inline: 4rem;
+    }
+  }
+
+  @media (min-width: 90rem) {
+    .grid-page {
+      column-gap: 2rem;
+      padding-inline: 6rem;
+    }
+  }
+
+  /* Ancestors of sticky elements use clip, never hidden/auto, so sticky keeps working. */
+  .clip-x {
+    overflow-x: clip;
+  }
+
+  .type-label {
+    font-size: var(--text-label);
+    line-height: var(--text-label--line-height);
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .type-statement {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: var(--text-statement);
+    line-height: var(--text-statement--line-height);
+  }
+
+  .type-display {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: var(--text-display);
+    line-height: var(--text-display--line-height);
+  }
+}

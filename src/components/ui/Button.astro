@@ -1,0 +1,52 @@
+---
+/**
+ * Button or button-styled link. Every instance must have a real destination: pass `href` for
+ * navigation, or `type` for a form control. Sentence case labels only.
+ *
+ * variant:
+ *  - primary: terracotta fill, paper text (not for espresso bands)
+ *  - secondary: 1px espresso outline
+ *  - on-espresso: paper outline + paper text, for espresso bands (terracotta fails there)
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+type Variant = 'primary' | 'secondary' | 'on-espresso';
+
+type LinkProps = { href: string; type?: never } & Omit<HTMLAttributes<'a'>, 'href' | 'type'>;
+type ButtonProps = { href?: never; type: 'button' | 'submit' } & Omit<
+  HTMLAttributes<'button'>,
+  'type'
+>;
+
+type Props = (LinkProps | ButtonProps) & { variant?: Variant; fullWidth?: boolean };
+
+const { variant = 'primary', fullWidth = false, class: className, ...rest } = Astro.props;
+
+const variants: Record<Variant, string> = {
+  primary:
+    'bg-terracotta text-paper border-terracotta hover:bg-terracotta-deep hover:border-terracotta-deep active:bg-terracotta-deep',
+  secondary: 'bg-transparent text-espresso border-espresso hover:bg-espresso hover:text-limewash',
+  'on-espresso': 'bg-transparent text-paper border-paper hover:bg-paper hover:text-espresso',
+};
+
+const classes = [
+  'inline-flex items-center justify-center gap-2 border px-6',
+  'min-h-(--control-height) rounded-button text-[1rem] leading-tight font-medium no-underline',
+  'transition-[background-color,border-color,color] duration-(--dur-micro) ease-(--ease-standard)',
+  fullWidth ? 'w-full' : '',
+  variants[variant],
+  className,
+]
+  .filter(Boolean)
+  .join(' ');
+---
+
+{'href' in rest && rest.href !== undefined ? (
+  <a class={classes} {...rest}>
+    <slot />
+  </a>
+) : (
+  <button class={classes} {...(rest as ButtonProps)}>
+    <slot />
+  </button>
+)}

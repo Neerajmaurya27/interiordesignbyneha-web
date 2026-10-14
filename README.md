@@ -1,0 +1,44 @@
+# interiordesignbyneha — website
+
+Static, photography-led site for an interior design studio working in Mumbai and Dubai.
+Built with Astro 7, Tailwind CSS v4 and self-hosted Fraunces + Inter. It will be hosted on Cloudflare.
+The full plan, including the register of facts still to be verified, is in
+[docs/implementation-plan.md](docs/implementation-plan.md).
+
+## Requirements
+
+- Node 22.12 or later (`.nvmrc`)
+- pnpm 10 (`corepack enable`)
+
+## Commands
+
+| Command             | What it does                                                 |
+| ------------------- | ------------------------------------------------------------ |
+| `pnpm dev`          | Dev server at http://localhost:4321; tokens at `/dev/tokens` |
+| `pnpm build`        | Production build to `dist/`, then the placeholder guard      |
+| `pnpm preview`      | Serve the production build                                   |
+| `pnpm check`        | Astro + TypeScript type check                                |
+| `pnpm lint`         | ESLint (TypeScript, Astro, jsx-a11y strict)                  |
+| `pnpm format:check` | Prettier                                                     |
+| `pnpm test`         | Unit tests (Vitest), including token contrast checks         |
+| `pnpm verify`       | Everything above, as CI runs it                              |
+
+## Design system
+
+- **Tokens:** `src/styles/tokens.css` (Tailwind `@theme static`). Tailwind's default colours,
+  font sizes, breakpoints, radii and shadows are removed, so only brand values exist.
+- **Motion:** `src/styles/motion.css`. Once-only fades, no animation library, reduced motion honoured.
+- **Global styles:** `src/styles/global.css` (base type, focus rings, `.grid-page` 4/8/12 grid).
+- **Components:** `src/components/ui/`
+  - `Button`, `TextLink`, `ChapterLabel`
+  - `Picture` (art-directed AVIF/WebP/JPEG)
+  - `Field`, `ChoiceCard`
+- **Fonts:** loaded via the Astro Fonts API (`astro.config.mjs`). Two WOFF2 files; Fraunces is preloaded.
+  Metric-matched fallbacks are generated automatically.
+- **Dev reference:** `src/dev/tokens.astro` is mounted at `/dev/tokens` during `pnpm dev` only.
+
+## Content rules
+
+The portfolio contains real photographs of completed projects only. Any studio fact that is not yet
+verified stays hidden, and the production build fails if `[VERIFY`, `TODO`, `lorem` or `placeholder`
+text appears in the output (`scripts/check-placeholders.mjs`).

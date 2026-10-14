@@ -1,0 +1,29 @@
+---
+/**
+ * Inline text link: 1px underline that thickens on hover (150ms). Terracotta on light
+ * backgrounds; on espresso bands pass tone="on-espresso" (sand) — never terracotta on espresso.
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'a'> & { href: string; tone?: 'default' | 'on-espresso' | 'inherit' };
+
+const { tone = 'default', class: className, ...rest } = Astro.props;
+
+const tones = {
+  default: 'text-terracotta hover:text-terracotta-deep',
+  'on-espresso': 'text-sand hover:text-paper',
+  inherit: 'text-inherit',
+} as const;
+---
+
+<a
+  class:list={[
+    'underline decoration-1 underline-offset-[0.2em] hover:decoration-2',
+    'transition-[text-decoration-thickness,color] duration-(--dur-micro) ease-(--ease-standard)',
+    tones[tone],
+    className,
+  ]}
+  {...rest}
+>
+  <slot />
+</a>

@@ -1,0 +1,150 @@
+---
+/**
+ * Dev-only design-system reference at /dev/tokens. The route is injected by the devOnlyRoutes
+ * integration in astro.config.mjs only when running `astro dev`, so neither this page nor its
+ * fixture images reach a production build.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/ui/Button.astro';
+import TextLink from '../components/ui/TextLink.astro';
+import ChapterLabel from '../components/ui/ChapterLabel.astro';
+import Field from '../components/ui/Field.astro';
+import ChoiceCard from '../components/ui/ChoiceCard.astro';
+import Picture from '../components/ui/Picture.astro';
+import landscape from '../assets/fixtures/fixture-landscape-3x2.jpg';
+import portrait from '../assets/fixtures/fixture-portrait-4x5.jpg';
+
+const colours = [
+  ['limewash', 'Page background'],
+  ['paper', 'Fields, cards, credibility band'],
+  ['stone', 'Craft band, image placeholder'],
+  ['linen', 'Alternate light band'],
+  ['espresso', 'Text, enquiry band, footer'],
+  ['taupe', 'Captions, metadata'],
+  ['terracotta', 'Links, primary button, focus ring'],
+  ['terracotta-deep', 'Button hover/pressed'],
+  ['oak', 'Warm accent text'],
+  ['grey-muted', 'Neutral metadata (limewash only)'],
+  ['olive', 'Hospitality tint/tags'],
+  ['clay', 'Large display accents only'],
+  ['field-border', 'Form field borders'],
+  ['hairline', 'Decorative rules only'],
+  ['sand', 'Secondary text on espresso'],
+  ['brass', 'Small accents on espresso'],
+] as const;
+
+const spacing = [4, 8, 16, 24, 32, 48, 64, 96, 128, 160];
+---
+
+<BaseLayout title="Design tokens (dev)" noindex>
+  <main class="grid-page gap-y-24 py-16">
+    <header class="col-span-full flex flex-col gap-4">
+      <ChapterLabel number={0}>Design system</ChapterLabel>
+      <h1>Design tokens</h1>
+      <p class="text-taupe">
+        Dev-only reference. Values come from <code>src/styles/tokens.css</code>.
+      </p>
+    </header>
+
+    <section class="col-span-full flex flex-col gap-8" aria-labelledby="colours">
+      <h2 id="colours">Colours</h2>
+      <ul class="grid grid-cols-2 gap-6 tablet:grid-cols-4">
+        {colours.map(([name, use]) => (
+          <li class="flex flex-col gap-2">
+            <span
+              class="block aspect-square border border-hairline"
+              style={`background: var(--color-${name})`}
+            />
+            <span class="font-medium">{name}</span>
+            <span class="text-caption text-taupe">{use}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="col-span-full flex flex-col gap-8" aria-labelledby="type">
+      <h2 id="type">Typography</h2>
+      <p class="type-display">Complete interiors, designed and detailed.</p>
+      <p class="font-display text-h1 leading-(--text-h1--line-height)">Heading 1 sample</p>
+      <p class="font-display text-h2 leading-(--text-h2--line-height)">Heading 2 — chapter</p>
+      <p class="type-statement">I start with how a family lives, not with a style.</p>
+      <h3>Heading 3, Inter Medium</h3>
+      <p>
+        Body text in Inter Regular. The measure is capped at 36rem so lines stay between sixty and
+        seventy-five characters, which keeps long passages comfortable to read on any screen.
+      </p>
+      <p class="text-caption text-taupe">Caption · Worli, Mumbai · Residence · 2025</p>
+      <ChapterLabel number={2}>Selected work</ChapterLabel>
+    </section>
+
+    <section class="col-span-full flex flex-col gap-8" aria-labelledby="spacing">
+      <h2 id="spacing">Spacing scale</h2>
+      <ul class="flex flex-col gap-2">
+        {spacing.map((px) => (
+          <li class="flex items-center gap-4">
+            <span class="w-12 text-caption text-taupe">{px}px</span>
+            <span class="block h-4 bg-clay" style={`inline-size: ${px}px`} />
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="col-span-full flex flex-col gap-8" aria-labelledby="controls">
+      <h2 id="controls">Controls</h2>
+      <div class="flex flex-wrap gap-4">
+        <Button href="#controls">Discuss your project</Button>
+        <Button href="#controls" variant="secondary">
+          See selected work
+        </Button>
+        <Button type="button">Form button</Button>
+      </div>
+      <div class="on-espresso flex flex-wrap gap-4 bg-espresso p-8 text-limewash">
+        <Button href="#controls" variant="on-espresso">
+          Discuss your project
+        </Button>
+        <TextLink href="#controls" tone="on-espresso">
+          WhatsApp Mumbai
+        </TextLink>
+      </div>
+      <p>
+        An inline <TextLink href="#controls">text link</TextLink> within body copy.
+      </p>
+      <div class="flex max-w-(--container-text) flex-col gap-6 bg-paper p-8">
+        <Field id="dev-name" name="name" label="Full name" autocomplete="name" required />
+        <Field
+          id="dev-email"
+          name="email"
+          type="email"
+          label="Email"
+          hint="We reply from the studio address."
+          error="Enter an email address in the format name@example.com"
+        />
+        <fieldset class="flex flex-col gap-3">
+          <legend class="mb-2 font-medium">Location</legend>
+          <ChoiceCard name="location" value="mumbai" label="Mumbai" checked />
+          <ChoiceCard name="location" value="dubai" label="Dubai" />
+          <ChoiceCard
+            name="location"
+            value="both"
+            label="Both"
+            description="Homes in both cities"
+          />
+        </fieldset>
+      </div>
+    </section>
+
+    <section class="col-span-full flex flex-col gap-8" aria-labelledby="pictures">
+      <h2 id="pictures">Art-directed picture</h2>
+      <p class="text-caption text-taupe">
+        Flat-colour fixtures: 3:2 above 600px, 4:5 below. Not photographs.
+      </p>
+      <Picture
+        src={landscape}
+        mobileSrc={portrait}
+        alt="Flat stone-coloured test image"
+        sizes="100vw"
+        widthSet="full-bleed"
+      />
+    </section>
+  </main>
+</BaseLayout>

@@ -1,0 +1,83 @@
+/*
+ * Design tokens — the single source of truth for colour, type, spacing, layout and radii.
+ * Values follow docs/implementation-plan.md §5 (brief §4). Contrast ratios are asserted in
+ * tests/unit/contrast.test.ts, which reads this file — change a colour here and the test re-checks it.
+ * Do not hard-code colours or font sizes anywhere else. `static` emits every token as a CSS
+ * variable even when no utility uses it, so var(--color-*) always resolves.
+ */
+@theme static {
+  /* Tailwind's default palette is removed so only brand colours exist. */
+  --color-*: initial;
+
+  --color-limewash: #f2ede4; /* page background */
+  --color-paper: #fbf8f3; /* fields, cards, credibility band */
+  --color-stone: #e6ded1; /* craft chapter band, image placeholder (decorative) */
+  --color-linen: #eae3d6; /* alternate light band (decorative) */
+  --color-espresso: #2b2420; /* text, enquiry band, footer */
+  --color-taupe: #6b5e52; /* captions, metadata */
+  --color-terracotta: #9a4a2e; /* links, primary button fill, focus ring — never on espresso */
+  --color-terracotta-deep: #7e3b24; /* button hover/pressed */
+  --color-oak: #7a5c3e; /* occasional warm accent text */
+  --color-grey-muted: #6f6b65; /* neutral metadata, on limewash only */
+  --color-olive: #4f5530; /* hospitality tint/tags */
+  --color-clay: #b5653f; /* large display accents/icons only */
+  --color-field-border: #8c7f72; /* form field borders — keep fields on paper/limewash */
+  --color-hairline: #c9bba8; /* decorative rules only */
+  --color-sand: #d9cbb5; /* secondary text on espresso; focus ring on espresso */
+  --color-brass: #b8975a; /* small accents on espresso */
+
+  /* Fluid type: mobile value at 390px → desktop value at 1440px. */
+  --text-*: initial;
+  --text-display: clamp(2.375rem, 1.586rem + 3.238vw, 4.5rem); /* 38 → 72 */
+  --text-display--line-height: 1.05;
+  --text-h1: clamp(2.125rem, 1.707rem + 1.714vw, 3.25rem); /* 34 → 52 */
+  --text-h1--line-height: 1.1;
+  --text-h2: clamp(1.75rem, 1.564rem + 0.7619vw, 2.25rem); /* 28 → 36 */
+  --text-h2--line-height: 1.15;
+  --text-statement: clamp(1.5rem, 1.361rem + 0.5714vw, 1.875rem); /* 24 → 30 */
+  --text-statement--line-height: 1.3;
+  --text-h3: clamp(1.25rem, 1.204rem + 0.1905vw, 1.375rem); /* 20 → 22 */
+  --text-h3--line-height: 1.3;
+  --text-body: clamp(1.0625rem, 1.039rem + 0.09524vw, 1.125rem); /* 17 → 18 */
+  --text-body--line-height: 1.6;
+  --text-caption: 0.875rem; /* 14 */
+  --text-caption--line-height: 1.45;
+  --text-label: 0.8125rem; /* 13, uppercase */
+  --text-label--line-height: 1.3;
+  --text-label--letter-spacing: 0.08em;
+
+  /* Breakpoints: tablet 600, visible desktop nav 900, desktop 1024, wide 1440. */
+  --breakpoint-*: initial;
+  --breakpoint-tablet: 37.5rem;
+  --breakpoint-nav: 56.25rem;
+  --breakpoint-desktop: 64rem;
+  --breakpoint-wide: 90rem;
+
+  /*
+   * Spacing: base unit 4px. Allowed steps (px): 4, 8, 16, 24, 32, 48, 64, 96, 128, 160
+   * → utilities 1, 2, 4, 6, 8, 12, 16, 24, 32, 40.
+   */
+  --spacing: 0.25rem;
+  --spacing-section: clamp(4rem, 2.5rem + 6vw, 10rem); /* 64–96 mobile → 128–160 desktop */
+
+  /* Measures and caps. */
+  --container-text: 36rem;
+  --container-wide-text: 48rem;
+  --container-cap: 90rem;
+
+  --radius-*: initial;
+  --radius-button: 2px;
+
+  --shadow-*: initial; /* no shadows in this design */
+
+  /* Layout dimensions used by components. */
+  --header-height: 3.5rem; /* 56 mobile; 72 from desktop, see global.css */
+  --control-height: 3rem; /* buttons: 48 */
+  --field-height: 3.25rem; /* fields: 52 */
+}
+
+@theme inline {
+  --font-*: initial;
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-inter);
+}

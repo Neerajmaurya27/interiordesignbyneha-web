@@ -1,0 +1,111 @@
+---
+/**
+ * Art-directed responsive picture (plan §11).
+ * - Separate desktop and mobile crops via <source media>; never recrop with CSS.
+ * - AVIF + WebP sources, JPEG fallback in <img>.
+ * - Only the LCP image passes priority: eager + fetchpriority="high". Everything else is lazy.
+ * - Width/height always set; stone background shows while loading.
+ */
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  /** Landscape/desktop crop (also used on mobile when no mobile crop is given). */
+  src: ImageMetadata;
+  /** Hand-cropped portrait for viewports below the tablet breakpoint. */
+  mobileSrc?: ImageMetadata;
+  alt: string;
+  /** e.g. "100vw" (full-bleed) or "(min-width: 64rem) 50vw, 100vw" (pairs). */
+  sizes: string;
+  /** Use "full-bleed" for edge-to-edge images, "grid" for in-grid images. */
+  widthSet?: 'full-bleed' | 'grid';
+  priority?: boolean;
+  /** Focal point as "x% y%", applied as object-position. */
+  focal?: string;
+  class?: string;
+  imgClass?: string;
+}
+
+const {
+  src,
+  mobileSrc,
+  alt,
+  sizes,
+  widthSet = 'grid',
+  priority = false,
+  focal,
+  class: className,
+  imgClass,
+} = Astro.props;
+
+const WIDTHS = {
+  'full-bleed': [640, 960, 1280, 1600, 1920, 2400],
+  grid: [480, 800, 1200, 1600],
+} as const;
+
+const QUALITY = { avif: 55, webp: 78, jpeg: 80 } as const;
+
+function widthsFor(image: ImageMetadata) {
+  const allowed = WIDTHS[widthSet].filter((w) => w <= image.width);
+  return allowed.length > 0 ? [...allowed] : [image.width];
+}
+
+async function sourcesFor(image: ImageMetadata) {
+  const widths = widthsFor(image);
+  const [avif, webp, jpeg] = await Promise.all(
+    (['avif', 'webp', 'jpeg'] as const).map((format) =>
+      getImage({ src: image, widths, format, quality: QUALITY[format] }),
+    ),
+  );
+  return { avif: avif!, webp: webp!, jpeg: jpeg!, largest: widths.at(-1)! };
+}
+
+const desktop = await sourcesFor(src);
+const mobile = mobileSrc ? await sourcesFor(mobileSrc) : undefined;
+const tabletUp = '(min-width: 37.5rem)';
+
+const fallbackHeight = Math.round((src.height / src.width) * desktop.largest);
+---
+
+<picture class={className}>
+  {mobile && (
+    <>
+      <source media={tabletUp} type="image/avif" srcset={desktop.avif.srcSet.attribute} {sizes} />
+      <source media={tabletUp} type="image/webp" srcset={desktop.webp.srcSet.attribute} {sizes} />
+      <source media={tabletUp} srcset={desktop.jpeg.srcSet.attribute} {sizes} />
+      <source
+        type="image/avif"
+        srcset={mobile.avif.srcSet.attribute}
+        {sizes}
+        width={mobileSrc!.width}
+        height={mobileSrc!.height}
+      />
+      <source
+        type="image/webp"
+        srcset={mobile.webp.srcSet.attribute}
+        {sizes}
+        width={mobileSrc!.width}
+        height={mobileSrc!.height}
+      />
+    </>
+  )}
+  {!mobile && (
+    <>
+      <source type="image/avif" srcset={desktop.avif.srcSet.attribute} {sizes} />
+      <source type="image/webp" srcset={desktop.webp.srcSet.attribute} {sizes} />
+    </>
+  )}
+  <img
+    src={(mobile ?? desktop).jpeg.src}
+    srcset={(mobile ?? desktop).jpeg.srcSet.attribute}
+    {sizes}
+    {alt}
+    width={mobile ? mobileSrc!.width : desktop.largest}
+    height={mobile ? mobileSrc!.height : fallbackHeight}
+    loading={priority ? 'eager' : 'lazy'}
+    fetchpriority={priority ? 'high' : 'auto'}
+    decoding="async"
+    class={imgClass}
+    style={focal ? `object-position: ${focal}` : undefined}
+  />
+</picture>

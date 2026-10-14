@@ -1,0 +1,84 @@
+/*
+ * Motion tokens and rules (plan §5, brief §6).
+ * Motion is once-only settling fades. Only opacity and transform are animated.
+ * Every effect names its purpose: orientation, continuity or emphasis.
+ */
+:root {
+  --dur-micro: 150ms; /* hover, underline, button colour */
+  --dur-ui: 240ms; /* menu, filter, accordion, caption cross-fade */
+  --dur-text: 500ms; /* heading/caption entrance */
+  --dur-reveal-opacity: 700ms; /* image entrance */
+  --dur-reveal-transform: 900ms;
+  --dur-page: 500ms; /* view-transition group */
+  --stagger: 80ms; /* max 3 items */
+  --ease-out: cubic-bezier(0, 0, 0.3, 1); /* entrances */
+  --ease-standard: cubic-bezier(0.4, 0.14, 0.3, 1); /* menus, colour changes */
+  --ease-exit: cubic-bezier(0.4, 0.14, 1, 1); /* closing panels, lightbox exit */
+  --ease-scroll: linear; /* no scroll-linked effects at launch */
+  --reveal-distance: 24px;
+  --image-scale-max: 1.03; /* desktop card hover only */
+}
+
+/*
+ * Reveal (purpose: orientation). The hidden state applies only when the reveal script has added
+ * .js-reveal to <html>, so content is fully visible if JavaScript fails.
+ */
+.js-reveal [data-reveal]:not([data-revealed]) {
+  opacity: 0;
+  transform: translateY(var(--reveal-distance));
+}
+
+.js-reveal [data-reveal] {
+  transition:
+    opacity var(--dur-reveal-opacity) var(--ease-out),
+    transform var(--dur-reveal-transform) var(--ease-out);
+  transition-delay: calc(var(--reveal-index, 0) * var(--stagger));
+}
+
+.js-reveal [data-reveal='text'] {
+  transition-duration: var(--dur-text), var(--dur-text);
+}
+
+/*
+ * Cross-document view transitions (purpose: continuity), only where the visitor accepts motion.
+ * Browsers without support navigate normally.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+
+  ::view-transition-group(*) {
+    animation-duration: var(--dur-page);
+    animation-timing-function: var(--ease-standard);
+  }
+
+  ::view-transition-old(root) {
+    animation-duration: 150ms;
+    animation-timing-function: var(--ease-exit);
+  }
+
+  ::view-transition-new(root) {
+    animation-duration: 300ms;
+    animation-delay: 100ms;
+    animation-timing-function: var(--ease-out);
+  }
+}
+
+/* Reduced motion: no transforms or scales; opacity changes are at most 200ms. */
+@media (prefers-reduced-motion: reduce) {
+  .js-reveal [data-reveal]:not([data-revealed]) {
+    transform: none;
+  }
+
+  .js-reveal [data-reveal] {
+    transition: opacity 200ms linear;
+    transition-delay: 0ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}

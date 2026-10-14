@@ -1,0 +1,34 @@
+---
+/**
+ * Base document. Phase 2 provides the head essentials, fonts and global styles; Phase 3 adds
+ * the skip link, header, footer, SEO and JSON-LD.
+ */
+import { Font } from 'astro:assets';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  lang?: string;
+  dir?: 'ltr' | 'rtl';
+  noindex?: boolean;
+}
+
+const { title, description, lang = 'en', dir = 'ltr', noindex = false } = Astro.props;
+---
+
+<!doctype html>
+<html {lang} {dir}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    {noindex && <meta name="robots" content="noindex" />}
+    <Font cssVariable="--font-fraunces" preload />
+    <Font cssVariable="--font-inter" />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

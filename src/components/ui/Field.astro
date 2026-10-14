@@ -1,0 +1,84 @@
+---
+/**
+ * Text-like form field: label above, optional hint, error in words linked via aria-describedby.
+ * 52px tall, paper background, field-border outline. Keep fields on paper or limewash (the border
+ * fails contrast on stone).
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = Omit<HTMLAttributes<'input'>, 'id' | 'name'> & {
+  id: string;
+  name: string;
+  label: string;
+  hint?: string;
+  error?: string;
+  optional?: boolean;
+  multiline?: boolean;
+  rows?: number;
+};
+
+const {
+  id,
+  name,
+  label,
+  hint,
+  error,
+  optional = false,
+  multiline = false,
+  rows = 5,
+  required,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const hintId = hint ? `${id}-hint` : undefined;
+const errorId = `${id}-error`;
+const describedBy = [hintId, error ? errorId : undefined].filter(Boolean).join(' ') || undefined;
+
+const control = [
+  'block w-full bg-paper text-espresso border border-field-border rounded-button px-4',
+  'text-body placeholder:text-taupe',
+  error ? 'border-terracotta border-2' : '',
+].join(' ');
+---
+
+<div class:list={['flex flex-col gap-2', className]} data-field={name}>
+  <label for={id} class="font-medium">
+    {label}
+    {optional && <span class="text-taupe font-normal"> (optional)</span>}
+  </label>
+  {hint && (
+    <p id={hintId} class="text-caption text-taupe">
+      {hint}
+    </p>
+  )}
+  <p
+    id={errorId}
+    class="text-caption text-terracotta font-medium"
+    data-error-for={name}
+    hidden={!error}
+  >
+    {error && <span>Error: {error}</span>}
+  </p>
+  {multiline ? (
+    <textarea
+      id={id}
+      name={name}
+      rows={rows}
+      class:list={[control, 'py-3']}
+      aria-describedby={describedBy}
+      aria-invalid={error ? 'true' : undefined}
+      required={required}
+    />
+  ) : (
+    <input
+      id={id}
+      name={name}
+      class:list={[control, 'h-(--field-height)']}
+      aria-describedby={describedBy}
+      aria-invalid={error ? 'true' : undefined}
+      required={required}
+      {...rest}
+    />
+  )}
+</div>

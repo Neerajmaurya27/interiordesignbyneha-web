@@ -1,0 +1,59 @@
+---
+/**
+ * Choice card for single (radio) or multi (checkbox) select. A real native input sits inside a
+ * full-size label, so the whole card is the target (≥48px) and keyboard behaviour is native.
+ * Use inside a <fieldset> with a <legend>.
+ */
+interface Props {
+  type?: 'radio' | 'checkbox';
+  name: string;
+  value: string;
+  label: string;
+  description?: string;
+  checked?: boolean;
+  required?: boolean;
+  id?: string;
+}
+
+const {
+  type = 'radio',
+  name,
+  value,
+  label,
+  description,
+  checked = false,
+  required = false,
+  id = `${name}-${value}`.replace(/[^a-z0-9-]/gi, '-').toLowerCase(),
+} = Astro.props;
+
+const descriptionId = description ? `${id}-description` : undefined;
+---
+
+<label
+  for={id}
+  class:list={[
+    'flex min-h-12 cursor-pointer items-start gap-3 rounded-button border border-field-border bg-paper p-4',
+    'transition-[background-color,border-color,color] duration-(--dur-micro) ease-(--ease-standard)',
+    'hover:border-espresso has-checked:border-2 has-checked:border-espresso',
+    'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-terracotta',
+  ]}
+>
+  <input
+    {type}
+    {id}
+    {name}
+    {value}
+    {checked}
+    {required}
+    aria-describedby={descriptionId}
+    class="mt-1 size-5 shrink-0 accent-terracotta focus-visible:outline-none"
+  />
+  <span class="flex flex-col gap-1">
+    <span class="font-medium">{label}</span>
+    {description && (
+      <span id={descriptionId} class="text-caption text-taupe">
+        {description}
+      </span>
+    )}
+  </span>
+</label>

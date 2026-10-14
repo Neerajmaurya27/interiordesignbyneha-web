@@ -1,0 +1,16 @@
+---
+/** Chapter label, e.g. "02 — Selected work". Inter Medium 13px, uppercase, 0.08em tracking. */
+interface Props {
+  number?: number;
+  tone?: 'default' | 'on-espresso';
+  as?: 'p' | 'span';
+}
+
+const { number, tone = 'default', as: Tag = 'p' } = Astro.props;
+const prefix = number === undefined ? '' : `${String(number).padStart(2, '0')} — `;
+---
+
+<Tag class:list={['type-label', tone === 'on-espresso' ? 'text-sand' : 'text-taupe']}>
+  {prefix}
+  <slot />
+</Tag>
