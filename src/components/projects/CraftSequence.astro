@@ -1,0 +1,77 @@
+---
+/**
+ * Materials and craft (brief §9): on desktop a sticky caption column steps through 3–6 close-ups
+ * (same pattern as the home page's "Design in detail"); on mobile, image then caption.
+ */
+import Picture from '../ui/Picture.astro';
+import LightboxTrigger from './LightboxTrigger.astro';
+import type { Project } from '../../lib/projects';
+
+interface Props {
+  details: Project['details'];
+}
+
+const { details } = Astro.props;
+---
+
+<div class="grid-page gap-y-10" data-sticky-caption-sequence>
+  <div class="col-span-full desktop:col-span-4">
+    <p
+      class="craft-caption type-statement hidden desktop:block"
+      data-sticky-caption
+      aria-hidden="true"
+    >
+      {details[0]?.caption}
+    </p>
+  </div>
+  <ol class="col-span-full grid grid-cols-2 gap-x-4 gap-y-8 tablet:gap-x-6 desktop:col-span-7 desktop:col-start-6">
+    {details.map((detail, i) => (
+      <li class:list={[i % 2 === 1 && 'mt-12 desktop:mt-24']}>
+        <figure class="flex flex-col gap-3" data-caption-item data-caption={detail.caption}>
+          <LightboxTrigger src={detail.src} alt={detail.alt} caption={detail.caption}>
+            <Picture
+              src={detail.src}
+              alt={detail.alt}
+              sizes="(min-width: 64rem) 28vw, 50vw"
+              imgClass="w-full"
+            />
+          </LightboxTrigger>
+          <figcaption class="craft-figcaption text-caption text-taupe">{detail.caption}</figcaption>
+        </figure>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  @media (min-width: 64rem) {
+    .craft-caption {
+      position: sticky;
+      inset-block-start: calc(var(--header-height) + 3rem);
+      transition: opacity var(--dur-ui) var(--ease-standard);
+    }
+
+    :global(html:not(.js)) .craft-caption {
+      display: none;
+    }
+
+    :global(html.js) .craft-figcaption {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .craft-caption {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import '../../scripts/sticky-caption';
+</script>

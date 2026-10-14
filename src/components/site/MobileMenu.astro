@@ -95,6 +95,8 @@ const showCta = routeExists(enquiryCta.href);
 </style>
 
 <script>
+  import { trapFocus } from '../../scripts/focus-trap';
+
   const dialog = document.querySelector<HTMLDialogElement>('[data-mobile-menu]');
   const openers = document.querySelectorAll<HTMLAnchorElement>('[data-menu-open]');
   let lastOpener: HTMLElement | null = null;
@@ -120,24 +122,7 @@ const showCta = routeExists(enquiryCta.href);
 
     dialog.querySelector('[data-menu-close]')?.addEventListener('click', () => dialog.close());
 
-    // A modal dialog makes the page inert, but Tab can still leave for the browser's own UI.
-    // Wrap focus so it cycles within the menu while it is open.
-    dialog.addEventListener('keydown', (event) => {
-      if (event.key !== 'Tab') return;
-      const focusable = [
-        ...dialog.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'),
-      ].filter((el) => el.offsetParent !== null);
-      const first = focusable[0];
-      const last = focusable.at(-1);
-      if (!first || !last) return;
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    });
+    trapFocus(dialog);
 
     // Following a link closes the menu (matters for in-page anchors).
     dialog.addEventListener('click', (event) => {

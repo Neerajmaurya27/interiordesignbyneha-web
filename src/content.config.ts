@@ -15,6 +15,14 @@ export const PROJECT_TYPES = [
   'commercial',
 ] as const;
 export const REGIONS = ['mumbai', 'dubai', 'other'] as const;
+export const SEQUENCE_LAYOUTS = ['full', 'pair', 'pair-offset', 'trio', 'spread'] as const;
+const IMAGES_PER_LAYOUT: Record<(typeof SEQUENCE_LAYOUTS)[number], number> = {
+  full: 1,
+  pair: 2,
+  'pair-offset': 2,
+  trio: 3,
+  spread: 1,
+};
 
 const focal = z
   .string()
@@ -57,6 +65,10 @@ const projectSchema = ({ image }: SchemaContext) => {
     brief: z.string(),
     concept: z.string(),
     execution: z.string().optional(),
+    /** Sketch or mood image beside the concept text. Renders are captioned as such. */
+    conceptImage: picture.optional(),
+    /** 2–3 documented site photographs for the execution section. */
+    siteImages: z.array(picture).default([]),
 
     hero: z.object({
       desktop: image(),
@@ -66,14 +78,23 @@ const projectSchema = ({ image }: SchemaContext) => {
     }),
     /** Extra images for the home-page spreads (two portraits for spread B). */
     homeImages: z.array(picture).default([]),
+    /** The walk through the home: 8–15 images in approved layouts. */
     sequence: z
       .array(
-        z.object({
-          layout: z.enum(['full', 'pair', 'pair-offset', 'trio', 'spread']),
-          caption: z.string().optional(),
-          images: z.array(picture).min(1),
-        }),
+        z
+          .object({
+            layout: z.enum(SEQUENCE_LAYOUTS),
+            caption: z.string().optional(),
+            images: z.array(picture).min(1),
+          })
+          .refine((group) => group.images.length === IMAGES_PER_LAYOUT[group.layout], {
+            message:
+              'Image count must match the layout: full 1, pair 2, pair-offset 2, trio 3, spread 1',
+          }),
       )
+      .refine((groups) => groups.filter((g) => g.layout === 'spread').length <= 1, {
+        message: 'At most one 21:9 spread per case study',
+      })
       .default([]),
     details: z
       .array(z.object({ src: image(), alt: z.string().min(1), caption: z.string().min(1) }))
@@ -91,9 +112,11 @@ const projectSchema = ({ image }: SchemaContext) => {
       .default([]),
     plan: z
       .object({
-        svg: z.string(),
+        /** SVG file beside index.md; rooms are elements with data-room="<id>". */
+        svg: z.string().regex(/\.svg$/),
+        /** Text description of the plan for screen readers. */
         description: z.string(),
-        steps: z.array(z.object({ room: z.string(), text: z.string() })),
+        steps: z.array(z.object({ room: z.string(), label: z.string(), text: z.string() })).min(1),
       })
       .optional(),
     beforeAfter: z

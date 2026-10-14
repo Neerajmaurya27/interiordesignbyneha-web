@@ -1,0 +1,80 @@
+---
+/**
+ * The walk through the home (brief §9): groups in approved layouts — full | pair | pair-offset |
+ * trio | spread (21:9, at most one). One caption per group. Every image opens the lightbox.
+ * Only orientation-appropriate crops are used; photographs are never recropped by CSS.
+ */
+import Picture from '../ui/Picture.astro';
+import LightboxTrigger from './LightboxTrigger.astro';
+import type { Project } from '../../lib/projects';
+
+interface Props {
+  sequence: Project['sequence'];
+}
+
+const { sequence } = Astro.props;
+
+const layout = {
+  full: { wrap: 'grid-page', items: ['col-span-full'], sizes: '(min-width: 90rem) 1248px, 100vw' },
+  pair: {
+    wrap: 'grid-page gap-y-4',
+    items: [
+      'col-span-full tablet:col-span-4 desktop:col-span-6',
+      'col-span-full tablet:col-span-4 desktop:col-span-6',
+    ],
+    sizes: '(min-width: 37.5rem) 50vw, 100vw',
+  },
+  'pair-offset': {
+    wrap: 'grid-page gap-y-4',
+    items: [
+      'col-span-full tablet:col-span-4 desktop:col-span-5 desktop:col-start-2',
+      'col-span-full tablet:col-span-4 tablet:mt-16 desktop:col-span-5 desktop:col-start-8 desktop:mt-32',
+    ],
+    sizes: '(min-width: 64rem) 40vw, (min-width: 37.5rem) 50vw, 100vw',
+  },
+  trio: {
+    wrap: 'grid-page gap-y-4',
+    items: Array(3).fill('col-span-full tablet:col-span-4 desktop:col-span-4'),
+    sizes: '(min-width: 64rem) 33vw, (min-width: 37.5rem) 50vw, 100vw',
+  },
+  spread: { wrap: '', items: ['w-full'], sizes: '100vw' },
+} as const;
+---
+
+<div class="flex flex-col gap-16 desktop:gap-24">
+  {sequence.map((group) => {
+    const spec = layout[group.layout];
+    return (
+      <figure class="flex flex-col gap-4" data-layout={group.layout}>
+        <div class={spec.wrap}>
+          {group.images.map((img, i) => (
+            <div class={spec.items[i]} data-reveal style={`--reveal-index: ${Math.min(i, 2)}`}>
+              <LightboxTrigger src={img.src} alt={img.alt} caption={img.caption ?? group.caption}>
+                <Picture
+                  src={img.src}
+                  alt={img.alt}
+                  sizes={spec.sizes}
+                  widthSet={
+                    group.layout === 'spread' || group.layout === 'full' ? 'full-bleed' : 'grid'
+                  }
+                  focal={img.focal}
+                  imgClass="w-full"
+                />
+              </LightboxTrigger>
+              {img.caption && <p class="pt-2 text-caption text-taupe">{img.caption}</p>}
+            </div>
+          ))}
+        </div>
+        {group.caption && (
+          <figcaption class="grid-page text-caption text-taupe">
+            <span class="col-span-full desktop:col-span-6">{group.caption}</span>
+          </figcaption>
+        )}
+      </figure>
+    );
+  })}
+</div>
+
+<script>
+  import '../../scripts/reveal';
+</script>

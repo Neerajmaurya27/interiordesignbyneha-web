@@ -55,3 +55,30 @@ describe('hasMenuDestinations', () => {
     ).toBe(true);
   });
 });
+
+import { applyContentGates, countPublished } from '../../src/lib/routes';
+
+describe('content-gated routes', () => {
+  it('treats [...index] files as the folder index', () => {
+    expect(routesFromFiles(['/src/pages/projects/[...index].astro']).has('/projects')).toBe(true);
+  });
+
+  it('drops gated routes until content is published', () => {
+    const routes = routesFromFiles([
+      '/src/pages/projects/[...index].astro',
+      '/src/pages/studio.astro',
+    ]);
+    expect([...applyContentGates(routes, { '/projects': false })]).toEqual(['/studio']);
+  });
+
+  it('counts only published, verified projects', () => {
+    const fm = (body: string) => `---\n${body}\n---\n`;
+    expect(
+      countPublished([
+        fm('title: A\npublished: true\nverified:\n  facts: true\n  credits: true'),
+        fm('title: B\npublished: false\nverified:\n  facts: false\n  credits: false'),
+        fm('title: C\nverified:\n  facts: true\n  credits: true'),
+      ]),
+    ).toBe(1);
+  });
+});

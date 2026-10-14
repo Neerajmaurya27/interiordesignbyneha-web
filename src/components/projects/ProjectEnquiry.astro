@@ -1,0 +1,56 @@
+---
+/**
+ * Case-study enquiry (brief §9): "Planning a similar home in {city}?" with a prefilled enquiry
+ * link (/enquire?type=&city=&project=) and a WhatsApp link naming the project. Renders only when
+ * at least one of those exists.
+ */
+import Button from '../ui/Button.astro';
+import WhatsAppLink from '../site/WhatsAppLink.astro';
+import type { Project } from '../../lib/projects';
+import { enquiryHref } from '../../lib/project-rules';
+import { routeExists } from '../../lib/routes';
+import { site } from '../../data/site';
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+const showCta = routeExists('/enquire');
+const office = site.offices.find((o) => o.region === project.region && o.whatsapp);
+const render = showCta || office !== undefined;
+---
+
+{render && (
+  <section
+    aria-labelledby="project-enquiry-heading"
+    class="on-espresso bg-espresso py-24 text-limewash"
+    data-enquiry-bar-hide
+  >
+    <div class="grid-page gap-y-8">
+      <h2 id="project-enquiry-heading" class="col-span-full desktop:col-span-8">
+        Planning a similar home in {project.city}?
+      </h2>
+      <div class="col-span-full flex flex-col gap-6 tablet:flex-row tablet:items-center tablet:gap-10">
+        {showCta && (
+          <Button
+            href={enquiryHref(project)}
+            variant="on-espresso"
+            class="w-full tablet:w-auto"
+            data-analytics="cta_click"
+            data-location="case-study"
+          >
+            Discuss your project
+          </Button>
+        )}
+        {office && (
+          <WhatsAppLink
+            region={office.region}
+            from={project.title}
+            class="text-sand underline decoration-1 underline-offset-[0.2em] hover:text-paper hover:decoration-2"
+          />
+        )}
+      </div>
+    </div>
+  </section>
+)}

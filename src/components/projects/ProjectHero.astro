@@ -1,0 +1,50 @@
+---
+/**
+ * Case-study hero (brief §9). Full-bleed landscape at 80svh on desktop, the portrait crop at 70svh
+ * on mobile. Same LCP rules as the home hero: eager, fetchpriority high, never animated. Carries
+ * the project's view-transition-name so the card image morphs into it.
+ */
+import Picture from '../ui/Picture.astro';
+import type { Project } from '../../lib/projects';
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+---
+
+<div class="project-hero" style={`--vt: project-${project.slug}`} data-enquiry-bar-start>
+  <Picture
+    src={project.hero.desktop}
+    mobileSrc={project.hero.mobile}
+    alt={project.hero.alt}
+    sizes="100vw"
+    widthSet="full-bleed"
+    priority
+    focal={project.hero.focal}
+    class="block h-full"
+    imgClass="h-full w-full object-cover"
+  />
+</div>
+
+<style>
+  .project-hero {
+    block-size: 70svh;
+    overflow: clip;
+    background-color: var(--color-stone);
+  }
+
+  @media (min-width: 64rem) {
+    .project-hero {
+      block-size: 80svh;
+    }
+  }
+
+  /* Purpose: continuity — receives the card image's view transition. */
+  @media (prefers-reduced-motion: no-preference) {
+    .project-hero {
+      view-transition-name: var(--vt);
+    }
+  }
+</style>

@@ -7,7 +7,35 @@
  * all pages exist. Production builds only link to real routes.
  */
 
+import { parse } from 'yaml';
+import { isPublishable } from './project-rules';
+
 const pageFiles = Object.keys(import.meta.glob('/src/pages/**/*.{astro,md,mdx,html}'));
+
+/**
+ * Routes that exist only once content is published. Read from project frontmatter without
+ * importing images, so this stays synchronous for components.
+ */
+const projectSources = import.meta.glob<string>('/src/content/projects/*/index.md', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
+export function countPublished(sources: string[]): number {
+  return sources.filter((raw) => {
+    const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (!match) return false;
+    const data = parse(match[1]!) as Parameters<typeof isPublishable>[0];
+    return data?.published === true && isPublishable(data);
+  }).length;
+}
+
+const hasPublishedProjects = countPublished(Object.values(projectSources)) > 0;
+const contentGates: Record<string, boolean> = {
+  '/projects': hasPublishedProjects,
+  '/projects/[slug]': hasPublishedProjects,
+};
 
 /** Converts src/pages file paths to route paths. Dynamic segments become "[param]". */
 export function routesFromFiles(files: string[]): Set<string> {
@@ -16,13 +44,22 @@ export function routesFromFiles(files: string[]): Set<string> {
     const route = file
       .replace(/^\/src\/pages/, '')
       .replace(/\.(astro|md|mdx|html)$/, '')
-      .replace(/\/index$/, '');
+      // "[...index]" files render their folder's index page (generated only when content exists).
+      .replace(/\/(index|\[\.\.\.index\])$/, '');
     routes.add(route === '' ? '/' : route);
   }
   return routes;
 }
 
-const routes = routesFromFiles(pageFiles);
+/** Removes routes whose content is not published yet. */
+export function applyContentGates(
+  routes: Set<string>,
+  gates: Record<string, boolean>,
+): Set<string> {
+  return new Set([...routes].filter((route) => gates[route] ?? true));
+}
+
+const routes = applyContentGates(routesFromFiles(pageFiles), contentGates);
 
 export function routeExists(
   href: string,

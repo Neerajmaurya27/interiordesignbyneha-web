@@ -81,3 +81,36 @@ export function breadcrumbJsonLd(crumbs: Crumb[], siteUrl: string): JsonLd {
 export function serializeJsonLd(data: JsonLd): string {
   return JSON.stringify(data).replace(/</g, '\\u003c');
 }
+
+export interface CreativeWorkInput {
+  name: string;
+  url: string;
+  images: string[];
+  description: string;
+  city: string;
+  country: string;
+  locality?: string | undefined;
+  year: number;
+}
+
+/** CreativeWork for a case study, credited to the studio organisation. */
+export function projectJsonLd(work: CreativeWorkInput, siteUrl: string): JsonLd {
+  return compact({
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: work.name,
+    url: new URL(work.url, siteUrl).href,
+    image: work.images.map((src) => new URL(src, siteUrl).href),
+    about: work.description,
+    dateCreated: String(work.year),
+    creator: { '@id': new URL('#organization', siteUrl).href },
+    locationCreated: {
+      '@type': 'Place',
+      address: compact({
+        '@type': 'PostalAddress',
+        addressLocality: work.locality ? `${work.locality}, ${work.city}` : work.city,
+        addressCountry: work.country,
+      }),
+    },
+  });
+}

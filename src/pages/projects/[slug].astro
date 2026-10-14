@@ -1,0 +1,28 @@
+---
+/** /projects/{slug} — one page per published project (and fixtures in `astro dev`). */
+import ProjectLayout from '../../layouts/ProjectLayout.astro';
+import { getProjects, type Project } from '../../lib/projects';
+import { nextProject, relatedFor } from '../../lib/project-rules';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((project) => ({
+    params: { slug: project.slug },
+    props: {
+      project,
+      related: relatedFor(project, projects),
+      next: nextProject(project, projects),
+    },
+  }));
+}
+
+interface Props {
+  project: Project;
+  related: Project[];
+  next: Project | null;
+}
+
+const { project, related, next } = Astro.props;
+---
+
+<ProjectLayout {project} {related} {next} />

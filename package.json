@@ -18,7 +18,8 @@
     "test": "vitest run",
     "verify": "pnpm check && pnpm lint && pnpm format:check && pnpm test && pnpm build",
     "test:e2e": "playwright test",
-    "launch:check": "node scripts/check-launch.mjs"
+    "launch:check": "node scripts/check-launch.mjs",
+    "assets": "node scripts/asset-inventory.mjs"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "5.3.0",
@@ -26,7 +27,8 @@
     "@tailwindcss/vite": "4.3.3",
     "astro": "7.3.8",
     "sharp": "^0.35.5",
-    "tailwindcss": "4.3.3"
+    "tailwindcss": "4.3.3",
+    "yaml": "2"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",

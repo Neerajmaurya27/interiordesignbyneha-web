@@ -1,0 +1,96 @@
+---
+/**
+ * Plan (brief §9, optional). Inline SVG; rooms are elements with data-room="<id>".
+ * Desktop: the plan is sticky beside 3–5 stepping notes, and the room for the note in view is
+ * highlighted (fill colour only — no stroke drawing). Mobile: a static plan with numbered rooms
+ * and the notes as a list. A text description is provided for screen readers.
+ */
+import type { Project } from '../../lib/projects';
+
+interface Props {
+  plan: NonNullable<Project['plan']>;
+  svg: string;
+  slug: string;
+}
+
+const { plan, svg, slug } = Astro.props;
+const descId = `plan-desc-${slug}`;
+---
+
+<div class="grid-page gap-y-10" data-plan>
+  <div class="col-span-full desktop:col-span-7">
+    <figure class="plan-figure" aria-describedby={descId}>
+      <div class="plan-svg" aria-hidden="true" set:html={svg} />
+      <figcaption id={descId} class="sr-only">
+        {plan.description}
+      </figcaption>
+    </figure>
+  </div>
+  <ol class="col-span-full flex flex-col gap-8 desktop:col-span-4 desktop:col-start-9 desktop:gap-[40svh] desktop:py-[20svh]">
+    {plan.steps.map((step, i) => (
+      <li class="plan-step flex gap-4" data-plan-step={step.room}>
+        <span class="type-label pt-1 text-taupe">{String(i + 1).padStart(2, '0')}</span>
+        <div class="flex flex-col gap-1">
+          <h3>{step.label}</h3>
+          <p>{step.text}</p>
+        </div>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  .plan-figure {
+    background-color: var(--color-paper);
+    padding: 1rem;
+  }
+
+  .plan-svg :global(svg) {
+    inline-size: 100%;
+    block-size: auto;
+  }
+
+  .plan-svg :global([data-room]) {
+    transition: fill var(--dur-ui) var(--ease-standard);
+  }
+
+  .plan-svg :global([data-room][data-active]) {
+    fill: var(--color-stone);
+  }
+
+  @media (min-width: 64rem) {
+    .plan-figure {
+      position: sticky;
+      inset-block-start: calc(var(--header-height) + 2rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .plan-svg :global([data-room]) {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // Purpose: orientation — highlight the room the visitor is reading about (desktop only).
+  const desktop = window.matchMedia('(min-width: 64rem)');
+  for (const plan of document.querySelectorAll<HTMLElement>('[data-plan]')) {
+    const steps = [...plan.querySelectorAll<HTMLElement>('[data-plan-step]')];
+    const setActive = (room: string | undefined) => {
+      plan.querySelectorAll('[data-room]').forEach((el) => {
+        el.toggleAttribute('data-active', !!room && el.getAttribute('data-room') === room);
+      });
+    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!desktop.matches) return setActive(undefined);
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActive((entry.target as HTMLElement).dataset.planStep);
+        }
+      },
+      { rootMargin: '-45% 0px -45% 0px' },
+    );
+    steps.forEach((step) => observer.observe(step));
+  }
+</script>

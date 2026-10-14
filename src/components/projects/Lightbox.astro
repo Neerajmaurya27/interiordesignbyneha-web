@@ -1,0 +1,103 @@
+---
+/**
+ * Case-study gallery (brief §9). A modal <dialog>: previous/next buttons, arrow keys, Escape,
+ * swipe on touch (with the buttons always visible), Back closes it (history state), and focus
+ * returns to the image that opened it. Images load only when shown.
+ */
+---
+
+<dialog class="lightbox" data-lightbox aria-label="Image viewer">
+  <div class="flex h-full flex-col">
+    <div class="flex items-center justify-between gap-4 px-5 py-3 text-limewash">
+      <p class="text-caption text-sand" data-lightbox-count aria-live="polite"></p>
+      <button type="button" class="lightbox-button" data-lightbox-close>
+        Close
+      </button>
+    </div>
+    <figure class="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-5">
+      <img
+        data-lightbox-image
+        alt=""
+        width="1"
+        height="1"
+        class="lightbox-image"
+        decoding="async"
+      />
+      <figcaption class="text-caption text-sand" data-lightbox-caption></figcaption>
+    </figure>
+    <div class="flex justify-between gap-4 px-5 py-4">
+      <button type="button" class="lightbox-button" data-lightbox-prev>
+        Previous<span class="sr-only"> image</span>
+      </button>
+      <button type="button" class="lightbox-button" data-lightbox-next>
+        Next<span class="sr-only"> image</span>
+      </button>
+    </div>
+  </div>
+</dialog>
+
+<style>
+  .lightbox {
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    max-inline-size: none;
+    max-block-size: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background-color: var(--color-espresso);
+    color: var(--color-limewash);
+  }
+
+  .lightbox::backdrop {
+    background-color: var(--color-espresso);
+  }
+
+  .lightbox :focus-visible {
+    outline-color: var(--color-sand);
+  }
+
+  .lightbox-image {
+    max-inline-size: 100%;
+    max-block-size: calc(100svh - 10rem);
+    inline-size: auto;
+    object-fit: contain;
+    background-color: transparent;
+    touch-action: pan-y;
+  }
+
+  .lightbox-button {
+    min-block-size: 2.75rem;
+    padding-inline: 1rem;
+    border: 1px solid var(--color-sand);
+    border-radius: var(--radius-button);
+    color: var(--color-limewash);
+    transition: background-color var(--dur-micro) var(--ease-standard);
+  }
+
+  .lightbox-button:hover {
+    background-color: color-mix(in srgb, var(--color-sand) 20%, transparent);
+  }
+
+  /* Purpose: continuity — a short fade in; none under reduced motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .lightbox[open] {
+      animation: lightbox-in var(--dur-ui) var(--ease-standard);
+    }
+  }
+
+  @keyframes lightbox-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  :global(html:has(.lightbox[open])) {
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  import '../../scripts/lightbox';
+</script>

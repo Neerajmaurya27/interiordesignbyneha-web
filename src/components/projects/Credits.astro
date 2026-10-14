@@ -1,0 +1,26 @@
+---
+/** Credits (brief §9), small type. Only credits that exist are listed. */
+import type { Project } from '../../lib/projects';
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+const credits = [
+  { term: 'Photography', value: project.photographer },
+  { term: 'Design lead', value: project.teamLead },
+  { term: 'Architect', value: project.architect },
+  { term: 'Contractor', value: project.contractor },
+  ...project.craftPartners.map((c) => ({ term: c.craft, value: `${c.name}, ${c.city}` })),
+].filter((c): c is { term: string; value: string } => !!c.value);
+---
+
+<dl class="grid gap-x-6 gap-y-3 text-caption tablet:grid-cols-2 desktop:grid-cols-4">
+  {credits.map((c) => (
+    <div class="flex flex-col">
+      <dt class="text-taupe">{c.term}</dt>
+      <dd>{c.value}</dd>
+    </div>
+  ))}
+</dl>

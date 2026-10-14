@@ -1,0 +1,270 @@
+---
+/**
+ * Case-study template (brief §9). Blocks in order; optional blocks render only when their content
+ * exists, so nothing leaves an empty gap:
+ *  1 hero · 2 title + facts (sticky on desktop) · 3 brief · 4 concept (+ image) · 5 sequence ·
+ *  6 materials and craft + made for this home · 7 plan · 8 execution · 9 before/after ·
+ *  10 testimonial · 11 credits · 12 enquiry · 13 related + next.
+ * Only desktop elements are sticky (facts, craft caption, plan).
+ */
+import { getImage } from 'astro:assets';
+import BaseLayout from './BaseLayout.astro';
+import ProjectHero from '../components/projects/ProjectHero.astro';
+import FactsPanel from '../components/projects/FactsPanel.astro';
+import ImageSequence from '../components/projects/ImageSequence.astro';
+import CraftSequence from '../components/projects/CraftSequence.astro';
+import MadeForThisHome from '../components/projects/MadeForThisHome.astro';
+import FloorPlan from '../components/projects/FloorPlan.astro';
+import BeforeAfter from '../components/projects/BeforeAfter.astro';
+import Credits from '../components/projects/Credits.astro';
+import ProjectEnquiry from '../components/projects/ProjectEnquiry.astro';
+import RelatedProjects from '../components/projects/RelatedProjects.astro';
+import Lightbox from '../components/projects/Lightbox.astro';
+import LightboxTrigger from '../components/projects/LightboxTrigger.astro';
+import Breadcrumb from '../components/site/Breadcrumb.astro';
+import JsonLd from '../components/site/JsonLd.astro';
+import Picture from '../components/ui/Picture.astro';
+import ChapterLabel from '../components/ui/ChapterLabel.astro';
+import DevBadge from '../components/ui/DevBadge.astro';
+import { site } from '../data/site';
+import { planSvg, type Project } from '../lib/projects';
+import { projectJsonLd } from '../lib/jsonld';
+import { routeExists } from '../lib/routes';
+import DevPreviewNotice from '../components/ui/DevPreviewNotice.astro';
+
+interface Props {
+  project: Project;
+  related: Project[];
+  next: Project | null;
+}
+
+const { project, related, next } = Astro.props;
+const href = `/projects/${project.slug}`;
+const place = [project.locality, project.city].filter(Boolean).join(', ');
+const title = project.seo.title ?? `${project.title}, ${place}`;
+const description = project.seo.description ?? project.essence;
+
+const og = await getImage({
+  src: project.hero.desktop,
+  width: 1200,
+  height: 630,
+  fit: 'cover',
+  format: 'jpeg',
+  quality: 80,
+});
+const svg = planSvg(project);
+const siteUrl = (Astro.site ?? new URL(Astro.url.origin)).href;
+const crumbs = [
+  ...(routeExists('/projects') ? [{ name: 'Projects', href: '/projects' }] : []),
+  { name: project.title, href },
+];
+const sectionHead = 'col-span-full desktop:col-span-7';
+---
+
+<BaseLayout
+  title={`${title} | ${site.name}`}
+  {description}
+  pageName={project.title}
+  ogImage={project.seo.ogImage ?? og.src}
+  ogType="article"
+>
+  <JsonLd
+    slot="head"
+    data={projectJsonLd(
+      {
+        name: project.title,
+        url: href,
+        images: [og.src],
+        description: project.essence,
+        city: project.city,
+        country: project.country,
+        locality: project.locality,
+        year: project.year,
+      },
+      siteUrl,
+    )}
+  />
+
+  <article aria-labelledby="project-title">
+    <ProjectHero {project} />
+
+    <div class="grid-page gap-y-10 pt-8 pb-(--spacing-section) desktop:pt-12">
+      <header class="col-span-full flex flex-col gap-4 desktop:col-span-7">
+        <Breadcrumb items={crumbs} />
+        <h1 id="project-title">
+          {project.title}
+          {project.isFixture && <DevBadge />}
+        </h1>
+        <p class="text-caption text-taupe">
+          {place} · {project.year}
+        </p>
+        <p class="type-statement">{project.essence}</p>
+      </header>
+
+      <aside
+        aria-label="Project facts"
+        class="hidden desktop:col-span-4 desktop:col-start-9 desktop:row-span-3 desktop:row-start-1 desktop:block"
+      >
+        <div class="facts-sticky">
+          <FactsPanel {project} variant="desktop" />
+        </div>
+      </aside>
+
+      <section aria-label="Project facts" class="col-span-full desktop:hidden">
+        <FactsPanel {project} variant="mobile" />
+      </section>
+
+      <section aria-labelledby="brief-heading" class:list={[sectionHead, 'flex flex-col gap-4']}>
+        <h2 id="brief-heading">
+          <ChapterLabel as="span">The brief</ChapterLabel>
+        </h2>
+        <p>{project.brief}</p>
+      </section>
+
+      <section aria-labelledby="concept-heading" class:list={[sectionHead, 'flex flex-col gap-4']}>
+        <h2 id="concept-heading">
+          <ChapterLabel as="span">Concept</ChapterLabel>
+        </h2>
+        <p>{project.concept}</p>
+        {project.conceptImage && (
+          <figure class="flex flex-col gap-2 pt-4">
+            <LightboxTrigger
+              src={project.conceptImage.src}
+              alt={project.conceptImage.alt}
+              caption={project.conceptImage.caption}
+            >
+              <Picture
+                src={project.conceptImage.src}
+                alt={project.conceptImage.alt}
+                sizes="(min-width: 64rem) 55vw, 100vw"
+                imgClass="w-full"
+              />
+            </LightboxTrigger>
+            {project.conceptImage.caption && (
+              <figcaption class="text-caption text-taupe">
+                {project.conceptImage.caption}
+              </figcaption>
+            )}
+          </figure>
+        )}
+      </section>
+    </div>
+
+    {project.sequence.length > 0 && (
+      <section aria-labelledby="sequence-heading" class="pb-(--spacing-section)">
+        <h2 id="sequence-heading" class="sr-only">
+          Photographs
+        </h2>
+        <ImageSequence sequence={project.sequence} />
+      </section>
+    )}
+
+    {(project.details.length > 0 || project.madeForThisHome.length > 0) && (
+      <section aria-labelledby="craft-heading" class="bg-stone py-(--spacing-section)">
+        <div class="grid-page mb-10">
+          <h2 id="craft-heading" class="col-span-full">
+            <ChapterLabel as="span">Materials and craft</ChapterLabel>
+          </h2>
+        </div>
+        {project.details.length > 0 && <CraftSequence details={project.details} />}
+        {project.madeForThisHome.length > 0 && (
+          <div class="grid-page mt-20 gap-y-8">
+            <h3 class="col-span-full">Made for this home</h3>
+            <div class="col-span-full">
+              <MadeForThisHome pieces={project.madeForThisHome} />
+            </div>
+          </div>
+        )}
+      </section>
+    )}
+
+    {project.plan && svg && (
+      <section aria-labelledby="plan-heading" class="py-(--spacing-section)">
+        <div class="grid-page mb-10">
+          <h2 id="plan-heading" class="col-span-full">
+            <ChapterLabel as="span">Plan</ChapterLabel>
+          </h2>
+        </div>
+        <FloorPlan plan={project.plan} {svg} slug={project.slug} />
+      </section>
+    )}
+
+    {project.execution && (
+      <section aria-labelledby="execution-heading" class="pb-(--spacing-section)">
+        <div class="grid-page gap-y-8">
+          <h2 id="execution-heading" class="col-span-full">
+            <ChapterLabel as="span">Execution</ChapterLabel>
+          </h2>
+          <p class="col-span-full desktop:col-span-7">{project.execution}</p>
+          {project.siteImages.length > 0 && (
+            <ul class="col-span-full grid gap-4 tablet:grid-cols-2 desktop:grid-cols-3">
+              {project.siteImages.map((img) => (
+                <li>
+                  <LightboxTrigger src={img.src} alt={img.alt} caption={img.caption}>
+                    <Picture
+                      src={img.src}
+                      alt={img.alt}
+                      sizes="(min-width: 64rem) 33vw, (min-width: 37.5rem) 50vw, 100vw"
+                      imgClass="w-full"
+                    />
+                  </LightboxTrigger>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
+    )}
+
+    {project.beforeAfter.length > 0 && (
+      <section aria-labelledby="ba-heading" class="pb-(--spacing-section)">
+        <div class="grid-page gap-y-8">
+          <h2 id="ba-heading" class="col-span-full">
+            <ChapterLabel as="span">Before and after</ChapterLabel>
+          </h2>
+          {project.beforeAfter.map((item, i) => (
+            <div class="col-span-full">
+              <BeforeAfter {item} id={`ba-${project.slug}-${i}`} />
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {project.testimonial && (
+      <section aria-label="Client's words" class="bg-paper py-(--spacing-section)">
+        <figure class="grid-page gap-y-4">
+          <blockquote class="type-statement col-span-full desktop:col-span-8 desktop:col-start-3">
+            <p>“{project.testimonial.quote}”</p>
+          </blockquote>
+          <figcaption class="col-span-full text-caption text-taupe desktop:col-span-8 desktop:col-start-3">
+            {project.testimonial.attribution}
+          </figcaption>
+        </figure>
+      </section>
+    )}
+
+    <section aria-labelledby="credits-heading" class="py-16">
+      <div class="grid-page gap-y-6">
+        <h2 id="credits-heading" class="col-span-full">
+          <ChapterLabel as="span">Credits</ChapterLabel>
+        </h2>
+        <div class="col-span-full">
+          <Credits {project} />
+        </div>
+      </div>
+    </section>
+  </article>
+
+  <ProjectEnquiry {project} />
+  {(related.length > 0 || next) && <RelatedProjects {related} {next} />}
+  <Lightbox />
+  {project.isFixture && <DevPreviewNotice />}
+</BaseLayout>
+
+<style>
+  .facts-sticky {
+    position: sticky;
+    inset-block-start: calc(var(--header-height) + 2rem);
+  }
+</style>

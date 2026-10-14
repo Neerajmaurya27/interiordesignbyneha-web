@@ -1,0 +1,48 @@
+---
+/** Two related projects (same city or type) and the next project in index order (brief §9). */
+import Picture from '../ui/Picture.astro';
+import ChapterLabel from '../ui/ChapterLabel.astro';
+import TextLink from '../ui/TextLink.astro';
+import type { Project } from '../../lib/projects';
+import { cardFacts } from '../../lib/project-rules';
+
+interface Props {
+  related: Project[];
+  next: Project | null;
+}
+
+const { related, next } = Astro.props;
+---
+
+<section aria-labelledby="related-heading" class="py-(--spacing-section)">
+  <div class="grid-page gap-y-10">
+    <h2 id="related-heading" class="col-span-full">
+      <ChapterLabel as="span">Related projects</ChapterLabel>
+    </h2>
+    <ul class="col-span-full grid gap-x-6 gap-y-12 tablet:grid-cols-2">
+      {related.map((project) => (
+        <li>
+          <a href={`/projects/${project.slug}`} class="group flex flex-col gap-3 no-underline">
+            <Picture
+              src={project.hero.mobile}
+              alt=""
+              sizes="(min-width: 37.5rem) 50vw, 100vw"
+              focal={project.hero.focal}
+              imgClass="w-full"
+            />
+            <h3 class="font-display text-h3 font-normal group-hover:underline">{project.title}</h3>
+            <p class="text-caption text-taupe">{cardFacts(project)}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+    {next && (
+      <p class="col-span-full border-t border-hairline pt-8">
+        <span class="type-label me-3 text-taupe">Next project</span>
+        <TextLink href={`/projects/${next.slug}`} class="font-display text-h3">
+          {next.title}
+        </TextLink>
+      </p>
+    )}
+  </div>
+</section>

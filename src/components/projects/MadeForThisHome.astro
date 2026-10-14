@@ -1,0 +1,29 @@
+---
+/** "Made for this home" (brief §9): bespoke pieces with name, material and maker. */
+import Picture from '../ui/Picture.astro';
+import type { Project } from '../../lib/projects';
+
+interface Props {
+  pieces: Project['madeForThisHome'];
+}
+
+const { pieces } = Astro.props;
+---
+
+<ul class="grid grid-cols-2 gap-x-4 gap-y-10 tablet:grid-cols-3 desktop:grid-cols-4 desktop:gap-x-6">
+  {pieces.map((piece) => (
+    <li class="flex flex-col gap-2" data-reveal>
+      <Picture
+        src={piece.image}
+        alt={piece.alt}
+        sizes="(min-width: 64rem) 22vw, (min-width: 37.5rem) 33vw, 50vw"
+        imgClass="w-full aspect-[4/5] object-cover"
+      />
+      <p class="font-medium">{piece.name}</p>
+      <p class="text-caption text-taupe">
+        {piece.material}
+        {piece.maker && <> · {piece.maker}</>}
+      </p>
+    </li>
+  ))}
+</ul>

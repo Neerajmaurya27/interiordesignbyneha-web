@@ -1,0 +1,83 @@
+---
+/**
+ * Project facts (brief §9). Desktop: a sticky panel in columns 9–12 beside the brief and concept.
+ * Mobile: the first four facts are always visible, the rest sit in a "Project details"
+ * disclosure directly under the title. Only facts that exist are listed.
+ */
+import type { Project } from '../../lib/projects';
+import { TYPE_LABELS } from '../../lib/project-rules';
+
+interface Props {
+  project: Project;
+  variant: 'desktop' | 'mobile';
+}
+
+const { project, variant } = Astro.props;
+
+const area = [
+  project.areaSqft && `${project.areaSqft.toLocaleString('en-IN')} sq ft`,
+  project.areaSqm && `${project.areaSqm.toLocaleString('en-IN')} m²`,
+]
+  .filter(Boolean)
+  .join(' / ');
+
+const facts = [
+  {
+    term: 'Location',
+    value: [project.locality, project.city, project.country].filter(Boolean).join(', '),
+  },
+  { term: 'Type', value: TYPE_LABELS[project.type] },
+  { term: 'Area', value: area },
+  { term: 'Year', value: String(project.year) },
+  { term: 'Status', value: project.status === 'completed' ? 'Completed' : 'In progress' },
+  { term: 'Scope', value: project.services.join(', ') },
+  { term: 'Design lead', value: project.teamLead },
+  { term: 'Architect', value: project.architect },
+  { term: 'Contractor', value: project.contractor },
+  {
+    term: 'Craft partners',
+    value: project.craftPartners.map((c) => `${c.name} (${c.craft}, ${c.city})`).join('; '),
+  },
+  { term: 'Photography', value: project.photographer },
+].filter((f): f is { term: string; value: string } => !!f.value);
+
+const primary = facts.slice(0, 4);
+const more = facts.slice(4);
+---
+
+{variant === 'desktop' ? (
+  <dl class="facts flex flex-col gap-4 border-t border-hairline pt-6">
+    {facts.map((f) => (
+      <div class="flex flex-col gap-0.5">
+        <dt class="type-label text-taupe">{f.term}</dt>
+        <dd>{f.value}</dd>
+      </div>
+    ))}
+  </dl>
+) : (
+  <div class="flex flex-col gap-4 border-t border-hairline pt-6">
+    <dl class="grid grid-cols-2 gap-x-4 gap-y-4">
+      {primary.map((f) => (
+        <div class="flex flex-col gap-0.5">
+          <dt class="type-label text-taupe">{f.term}</dt>
+          <dd>{f.value}</dd>
+        </div>
+      ))}
+    </dl>
+    {more.length > 0 && (
+      <details class="group">
+        <summary class="flex min-h-11 cursor-pointer items-center font-medium underline decoration-1 underline-offset-[0.2em]">
+          Project details
+        </summary>
+        <dl class="flex flex-col gap-4 pt-4">
+          {more.map((f) => (
+            <div class="flex flex-col gap-0.5">
+              <dt class="type-label text-taupe">{f.term}</dt>
+              <dd>{f.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </details>
+    )}
+  </div>
+)}

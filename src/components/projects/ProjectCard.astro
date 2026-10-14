@@ -1,0 +1,121 @@
+---
+/**
+ * Projects index card: image, title, "City · Type · Area · Year" (always visible, never on hover).
+ * Holds both crops; the grid's data-shape decides which shows (full-width rows use the landscape,
+ * portrait and tile rows the 4:5). Hidden crops are display:none and lazy, so they never download.
+ * The visible image carries the project's view-transition-name for the card → hero morph.
+ */
+import Picture from '../ui/Picture.astro';
+import DevBadge from '../ui/DevBadge.astro';
+import type { Project } from '../../lib/projects';
+import { cardFacts, shapeFor, typeGroup } from '../../lib/project-rules';
+
+interface Props {
+  project: Project;
+  index: number;
+}
+
+const { project, index } = Astro.props;
+const href = `/projects/${project.slug}`;
+---
+
+<li
+  class="project-card"
+  data-project-card
+  data-type-group={typeGroup(project.type)}
+  data-city={project.region}
+  data-shape={shapeFor(index)}
+>
+  <a {href} class="group flex flex-col gap-3 no-underline">
+    <div class="card-media" style={`--vt: project-${project.slug}`}>
+      <div class="media-full">
+        <Picture
+          src={project.hero.desktop}
+          mobileSrc={project.hero.mobile}
+          alt=""
+          sizes="(min-width: 90rem) 1248px, 100vw"
+          widthSet="full-bleed"
+          focal={project.hero.focal}
+          imgClass="w-full"
+        />
+      </div>
+      <div class="media-portrait">
+        <Picture
+          src={project.hero.mobile}
+          alt=""
+          sizes="(min-width: 64rem) 33vw, (min-width: 37.5rem) 50vw, 100vw"
+          focal={project.hero.focal}
+          imgClass="w-full"
+        />
+      </div>
+    </div>
+    <h2 class="font-display text-h3 leading-(--text-h3--line-height) font-normal">
+      <span class="card-title">{project.title}</span>
+      {project.isFixture && <DevBadge />}
+    </h2>
+    <p class="text-caption text-taupe">{cardFacts(project)}</p>
+  </a>
+</li>
+
+<style>
+  .project-card {
+    grid-column: 1 / -1;
+  }
+
+  @media (min-width: 37.5rem) {
+    .project-card[data-shape='portrait'],
+    .project-card[data-shape='tile'] {
+      grid-column: span 4;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .project-card[data-shape='portrait'] {
+      grid-column: span 6;
+    }
+
+    .project-card[data-shape='tile'] {
+      grid-column: span 4;
+    }
+  }
+
+  .project-card[data-shape='full'] .media-portrait,
+  .project-card:not([data-shape='full']) .media-full {
+    display: none;
+  }
+
+  .card-media {
+    overflow: clip;
+    background-color: var(--color-stone);
+  }
+
+  .card-title {
+    text-decoration-line: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    transition: text-decoration-color var(--dur-micro) var(--ease-standard);
+  }
+
+  a:hover .card-title {
+    text-decoration-color: currentColor;
+  }
+
+  /* Purpose: continuity — the card image morphs into the case-study hero. */
+  @media (prefers-reduced-motion: no-preference) {
+    .card-media {
+      view-transition-name: var(--vt);
+    }
+  }
+
+  /* Purpose: emphasis — slight scale on desktop hover; transform only. */
+  @media (hover: hover) and (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+    .card-media :global(img) {
+      transition: transform var(--dur-reveal-transform) var(--ease-out);
+    }
+
+    a:hover .card-media :global(img) {
+      transform: scale(var(--image-scale-max));
+    }
+  }
+</style>

@@ -23,6 +23,7 @@ The full plan, including the register of facts still to be verified, is in
 | `pnpm test`         | Unit tests (Vitest), including token contrast checks                        |
 | `pnpm test:e2e`     | Playwright end-to-end tests (starts the dev server)                         |
 | `pnpm launch:check` | After a build: fails until the home page has a real hero and published work |
+| `pnpm assets`       | Asset inventory per project (`--fixtures` for a dry run)                    |
 | `pnpm verify`       | Everything above, as CI runs it                                             |
 
 ## Design system
@@ -55,6 +56,14 @@ The full plan, including the register of facts still to be verified, is in
 - In `pnpm dev`, empty chapters are filled from `src/fixtures/` (labelled flat-colour images and the
   brief's sample copy, marked `[VERIFY]`) and a "Dev preview" tag is shown. Production builds never
   include fixtures or sample copy.
+
+## Projects
+
+- `/projects` and `/projects/<slug>` are generated only once a project is published with verified
+  facts and credits; until then navigation does not link to them.
+- The case-study template (`src/layouts/ProjectLayout.astro`) renders optional blocks — plan,
+  before/after, testimonial, craft, execution — only when the project has them.
+- `src/fixtures/projects/fixture-a` exercises every block; `fixture-b` is minimal.
 
 ## Content rules
 

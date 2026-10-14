@@ -1,0 +1,55 @@
+---
+/**
+ * /projects — the projects index (brief §8). A rest-parameter route so the page is generated only
+ * when at least one project is published (getStaticPaths returns nothing otherwise); navigation
+ * links to it only then (src/lib/routes.ts).
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ChapterLabel from '../../components/ui/ChapterLabel.astro';
+import ProjectCard from '../../components/projects/ProjectCard.astro';
+import ProjectFilters from '../../components/projects/ProjectFilters.astro';
+import TextLink from '../../components/ui/TextLink.astro';
+import { site } from '../../data/site';
+import { getProjects } from '../../lib/projects';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.length > 0 ? [{ params: { index: undefined } }] : [];
+}
+
+const projects = await getProjects();
+---
+
+<BaseLayout
+  title={`Projects | ${site.name}`}
+  description={`Completed interiors by ${site.name}.`}
+  pageName="Projects"
+>
+  <div class="grid-page gap-y-10 pt-16 pb-(--spacing-section) desktop:pt-24">
+    <header class="col-span-full flex flex-col gap-6">
+      <ChapterLabel>Selected work</ChapterLabel>
+      <h1>Projects</h1>
+    </header>
+
+    <div class="col-span-full flex flex-col gap-4">
+      <ProjectFilters {projects} />
+      <p class="text-caption text-taupe" aria-live="polite" data-filter-status>
+        {projects.length} projects
+      </p>
+    </div>
+
+    <ul class="col-span-full grid grid-cols-4 gap-x-4 gap-y-12 tablet:grid-cols-8 tablet:gap-x-6 desktop:grid-cols-12 desktop:gap-y-20">
+      {projects.map((project, index) => (
+        <ProjectCard {project} {index} />
+      ))}
+    </ul>
+
+    <p class="col-span-full" data-filter-empty hidden>
+      No projects match both filters. <TextLink href="/projects">Show all projects</TextLink>.
+    </p>
+  </div>
+</BaseLayout>
+
+<script>
+  import '../../scripts/project-filters';
+</script>

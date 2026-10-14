@@ -1,0 +1,92 @@
+---
+/**
+ * Type and city filters (brief §8). Plain links that set ?type= and ?city=, so they work without
+ * JavaScript (the static page then lists every project). With JavaScript the list filters in
+ * place, the URL is updated (so Back restores the state) and the result count is announced.
+ * Options with fewer than three projects are not offered.
+ */
+import { availableFilters } from '../../lib/project-rules';
+
+interface Props {
+  projects: { type: Parameters<typeof availableFilters>[0][number]['type']; region: string }[];
+}
+
+const { projects } = Astro.props;
+const { types, cities } = availableFilters(projects);
+const groups = [
+  { key: 'type', label: 'Type', options: types },
+  { key: 'city', label: 'City', options: cities },
+].filter((g) => g.options.length > 0);
+
+const link = (key: string, value: string | null) => {
+  if (!value) return '/projects';
+  return `/projects?${new URLSearchParams({ [key]: value }).toString()}`;
+};
+---
+
+{groups.length > 0 && (
+  <nav
+    aria-label="Filter projects"
+    class="flex flex-col gap-4 tablet:flex-row tablet:gap-12"
+    data-project-filters
+  >
+    {groups.map((group) => (
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-2">
+        <span class="type-label me-2 text-taupe" id={`filter-${group.key}`}>
+          {group.label}
+        </span>
+        <ul class="flex flex-wrap gap-2" aria-labelledby={`filter-${group.key}`}>
+          <li>
+            <a
+              href={link(group.key, null)}
+              class="chip"
+              data-filter={group.key}
+              data-value=""
+              aria-current="true"
+            >
+              All
+            </a>
+          </li>
+          {group.options.map((option) => (
+            <li>
+              <a
+                href={link(group.key, option.value)}
+                class="chip"
+                data-filter={group.key}
+                data-value={option.value}
+              >
+                {option.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </nav>
+)}
+
+<style>
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+    padding-inline: 1rem;
+    border: 1px solid var(--color-field-border);
+    border-radius: var(--radius-button);
+    text-decoration: none;
+    transition:
+      background-color var(--dur-ui) var(--ease-standard),
+      color var(--dur-ui) var(--ease-standard),
+      border-color var(--dur-ui) var(--ease-standard);
+  }
+
+  .chip:hover {
+    border-color: var(--color-espresso);
+  }
+
+  .chip[aria-current='true'] {
+    background-color: var(--color-espresso);
+    border-color: var(--color-espresso);
+    color: var(--color-limewash);
+  }
+</style>

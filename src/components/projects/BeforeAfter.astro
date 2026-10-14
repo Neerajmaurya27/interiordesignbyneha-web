@@ -1,0 +1,136 @@
+---
+/**
+ * Before/after (brief §9, optional). A slider operated by a native range input (click, keyboard
+ * arrows) and two buttons — never drag-only (WCAG 2.5.7). Without JavaScript both images are
+ * shown one after the other, labelled.
+ */
+import Picture from '../ui/Picture.astro';
+import type { Project } from '../../lib/projects';
+
+interface Props {
+  item: Project['beforeAfter'][number];
+  id: string;
+}
+
+const { item, id } = Astro.props;
+---
+
+<figure class="flex flex-col gap-4" data-before-after>
+  <div class="ba-stage">
+    <div class="ba-layer ba-after">
+      <Picture
+        src={item.after}
+        alt={`After: ${item.alt}`}
+        sizes="(min-width: 90rem) 1248px, 100vw"
+        imgClass="w-full"
+      />
+      <span class="ba-tag ba-tag-end">After</span>
+    </div>
+    <div class="ba-layer ba-before" data-ba-before>
+      <Picture
+        src={item.before}
+        alt={`Before: ${item.alt}`}
+        sizes="(min-width: 90rem) 1248px, 100vw"
+        imgClass="w-full"
+      />
+      <span class="ba-tag">Before</span>
+    </div>
+  </div>
+  <div class="ba-controls hidden flex-wrap items-center gap-4" data-ba-controls>
+    <label for={id} class="sr-only">
+      Compare before and after: amount of the before image shown
+    </label>
+    <input
+      id={id}
+      type="range"
+      min="0"
+      max="100"
+      value="50"
+      step="5"
+      class="ba-range"
+      data-ba-range
+    />
+    <button type="button" class="ba-button" data-ba-set="100">
+      Show before
+    </button>
+    <button type="button" class="ba-button" data-ba-set="0">
+      Show after
+    </button>
+  </div>
+  <figcaption class="text-caption text-taupe">{item.alt}</figcaption>
+</figure>
+
+<style>
+  .ba-stage {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .ba-layer {
+    position: relative;
+  }
+
+  .ba-tag {
+    position: absolute;
+    inset-block-start: 0.75rem;
+    inset-inline-start: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    background-color: var(--color-espresso);
+    color: var(--color-limewash);
+    font-size: var(--text-caption);
+  }
+
+  .ba-tag-end {
+    inset-inline-start: auto;
+    inset-inline-end: 0.75rem;
+  }
+
+  /* With JS: layers stack and the before image is revealed from the start edge. */
+  :global(html.js) .ba-stage {
+    position: relative;
+    gap: 0;
+  }
+
+  :global(html.js) .ba-before {
+    position: absolute;
+    inset: 0;
+    clip-path: inset(0 calc(100% - var(--ba, 50%)) 0 0);
+  }
+
+  :global(html.js) .ba-controls {
+    display: flex;
+  }
+
+  .ba-range {
+    flex: 1 1 12rem;
+    min-block-size: 2.75rem;
+    accent-color: var(--color-terracotta);
+  }
+
+  .ba-button {
+    min-block-size: 2.75rem;
+    padding-inline: 1rem;
+    border: 1px solid var(--color-espresso);
+    border-radius: var(--radius-button);
+  }
+</style>
+
+<script>
+  for (const figure of document.querySelectorAll<HTMLElement>('[data-before-after]')) {
+    const before = figure.querySelector<HTMLElement>('[data-ba-before]');
+    const range = figure.querySelector<HTMLInputElement>('[data-ba-range]');
+    if (!before || !range) continue;
+    const set = (value: number) => {
+      range.value = String(value);
+      before.style.setProperty('--ba', `${value}%`);
+      range.setAttribute('aria-valuetext', `${value}% before`);
+    };
+    range.addEventListener('input', () => set(Number(range.value)));
+    figure
+      .querySelectorAll<HTMLButtonElement>('[data-ba-set]')
+      .forEach((button) =>
+        button.addEventListener('click', () => set(Number(button.dataset.baSet))),
+      );
+    set(Number(range.value));
+  }
+</script>

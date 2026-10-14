@@ -61,3 +61,42 @@ describe('serializeJsonLd', () => {
     expect(serializeJsonLd({ name: '</script><script>' })).not.toContain('</script>');
   });
 });
+
+import { projectJsonLd } from '../../src/lib/jsonld';
+
+describe('projectJsonLd', () => {
+  it('describes the case study as a CreativeWork by the studio', () => {
+    expect(
+      projectJsonLd(
+        {
+          name: 'Worli residence',
+          url: '/projects/worli',
+          images: ['/_astro/hero.jpg'],
+          description: 'A calm family home.',
+          city: 'Mumbai',
+          country: 'India',
+          locality: 'Worli',
+          year: 2025,
+        },
+        url,
+      ),
+    ).toEqual({
+      '@context': 'https://schema.org',
+      '@type': 'CreativeWork',
+      name: 'Worli residence',
+      url: 'https://studio.test/projects/worli',
+      image: ['https://studio.test/_astro/hero.jpg'],
+      about: 'A calm family home.',
+      dateCreated: '2025',
+      creator: { '@id': 'https://studio.test/#organization' },
+      locationCreated: {
+        '@type': 'Place',
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: 'Worli, Mumbai',
+          addressCountry: 'India',
+        },
+      },
+    });
+  });
+});

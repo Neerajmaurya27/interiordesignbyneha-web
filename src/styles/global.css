@@ -60,8 +60,8 @@
     font-weight: 500;
   }
 
-  p,
-  li {
+  /* Reading measure for running text. Lists used as layout grids are not constrained. */
+  p {
     max-inline-size: var(--container-text);
   }
 

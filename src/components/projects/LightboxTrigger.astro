@@ -1,0 +1,39 @@
+---
+/**
+ * Wraps an image so it opens in the case-study lightbox. Without JavaScript it is a plain link to
+ * a large version of the image. The full-size file is only requested when the visitor opens it.
+ */
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  src: ImageMetadata;
+  alt: string;
+  caption?: string | undefined;
+  class?: string | undefined;
+}
+
+const { src, alt, caption, class: className } = Astro.props;
+const full = await getImage({ src, width: Math.min(2000, src.width), format: 'webp', quality: 80 });
+---
+
+<a
+  href={full.src}
+  class:list={['lightbox-trigger block', className]}
+  data-lightbox-trigger
+  data-full={full.src}
+  data-width={full.attributes.width}
+  data-height={full.attributes.height}
+  data-alt={alt}
+  data-caption={caption}
+  data-analytics="gallery_open"
+>
+  <slot />
+  <span class="sr-only"> (open larger image)</span>
+</a>
+
+<style>
+  .lightbox-trigger {
+    cursor: zoom-in;
+  }
+</style>
