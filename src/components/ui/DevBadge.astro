@@ -1,4 +1,5 @@
 ---
+import { SHOW_FIXTURES } from '../../lib/preview';
 /** Marks fixture or unverified content in `astro dev`. Renders nothing in production builds. */
 interface Props {
   label?: string;
@@ -6,8 +7,11 @@ interface Props {
 const { label = 'Fixture · unverified' } = Astro.props;
 ---
 
-{import.meta.env.DEV && (
-  <span class="ms-2 inline-block rounded-button bg-olive px-2 py-0.5 align-middle font-sans text-caption leading-tight font-medium text-paper not-italic">
+{SHOW_FIXTURES && (
+  <span
+    data-dev-only
+    class="ms-2 inline-block rounded-button bg-olive px-2 py-0.5 align-middle font-sans text-caption leading-tight font-medium text-paper not-italic"
+  >
     {label}
   </span>
 )}

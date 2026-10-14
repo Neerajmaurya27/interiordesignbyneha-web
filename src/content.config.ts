@@ -7,6 +7,9 @@ import { defineCollection, type SchemaContext } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
+/** See src/lib/preview.ts: fixtures load in `astro dev` and in preview builds only. */
+const SHOW_FIXTURES = import.meta.env.DEV || import.meta.env.PUBLIC_SHOW_FIXTURES === 'true';
+
 export const PROJECT_TYPES = [
   'residence',
   'villa',
@@ -166,7 +169,7 @@ const projects = defineCollection({
 const projectFixtures = defineCollection({
   loader: glob({
     pattern: '*/index.md',
-    base: import.meta.env.DEV ? './src/fixtures/projects' : './src/fixtures/production-empty',
+    base: SHOW_FIXTURES ? './src/fixtures/projects' : './src/fixtures/production-empty',
   }),
   schema: projectSchema,
 });
@@ -213,7 +216,7 @@ const pages = defineCollection({
 const pageFixtures = defineCollection({
   loader: glob({
     pattern: ['*.md', '!README.md'],
-    base: import.meta.env.DEV ? './src/fixtures/pages' : './src/fixtures/production-empty',
+    base: SHOW_FIXTURES ? './src/fixtures/pages' : './src/fixtures/production-empty',
   }),
   schema: pageSchema,
 });
@@ -234,7 +237,7 @@ const faq = defineCollection({
 const faqFixtures = defineCollection({
   loader: glob({
     pattern: '*.yaml',
-    base: import.meta.env.DEV ? './src/fixtures/faq' : './src/fixtures/production-empty',
+    base: SHOW_FIXTURES ? './src/fixtures/faq' : './src/fixtures/production-empty',
   }),
   schema: faqSchema,
 });
@@ -263,7 +266,7 @@ const team = defineCollection({
 const teamFixtures = defineCollection({
   loader: glob({
     pattern: ['*.md', '!README.md'],
-    base: import.meta.env.DEV ? './src/fixtures/team' : './src/fixtures/production-empty',
+    base: SHOW_FIXTURES ? './src/fixtures/team' : './src/fixtures/production-empty',
   }),
   schema: teamSchema,
 });

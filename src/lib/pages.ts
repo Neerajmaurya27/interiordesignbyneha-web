@@ -4,6 +4,7 @@
  * reviewed before the studio's copy arrives.
  */
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
+import { SHOW_FIXTURES } from './preview';
 
 export interface Loaded<T> {
   value: T;
@@ -17,7 +18,7 @@ export async function getPage(
 ): Promise<Loaded<PageEntry> | null> {
   const real = await getEntry('pages', id);
   if (real?.data.published) return { value: real, isFixture: false };
-  if (!import.meta.env.DEV) return null;
+  if (!SHOW_FIXTURES) return null;
   // In development an unpublished draft is shown (marked), before falling back to a fixture.
   if (real) return { value: real, isFixture: true };
   const fixture = await getEntry('pageFixtures', id);
@@ -26,7 +27,7 @@ export async function getPage(
 
 export async function getFaq() {
   const real = (await getCollection('faq')).filter((e) => e.data.published).map((e) => e.data);
-  if (real.length > 0 || !import.meta.env.DEV) {
+  if (real.length > 0 || !SHOW_FIXTURES) {
     return { value: real.sort((a, b) => a.order - b.order), isFixture: false };
   }
   const fixtures = (await getCollection('faqFixtures')).map((e) => e.data);
@@ -37,7 +38,7 @@ type TeamEntry = CollectionEntry<'team'> | CollectionEntry<'teamFixtures'>;
 
 export async function getTeam(): Promise<Loaded<TeamEntry[]>> {
   const real = (await getCollection('team')).filter((e) => e.data.consent && e.data.published);
-  if (real.length > 0 || !import.meta.env.DEV) {
+  if (real.length > 0 || !SHOW_FIXTURES) {
     return { value: real.sort((a, b) => a.data.order - b.data.order), isFixture: false };
   }
   const fixtures = await getCollection('teamFixtures');
@@ -59,7 +60,7 @@ export async function getPress(): Promise<Loaded<PressEntry[]>> {
     .filter((p) => p.data.verified)
     .map((p) => p.data)
     .sort((a, b) => b.year - a.year);
-  if (real.length > 0 || !import.meta.env.DEV) return { value: real, isFixture: false };
+  if (real.length > 0 || !SHOW_FIXTURES) return { value: real, isFixture: false };
   const { sampleCredibility } = await import('../fixtures/home/sample');
   return { value: sampleCredibility.press, isFixture: true };
 }

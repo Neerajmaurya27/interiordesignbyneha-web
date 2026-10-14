@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig, envField, fontProviders } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
+import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 
 // The production domain is not confirmed yet [V18]; set SITE_URL in the environment.
@@ -38,6 +39,23 @@ export default defineConfig({
         access: 'public',
         default: false,
       }),
+      /** Cookieless analytics [V25]: none until a provider is chosen. */
+      PUBLIC_ANALYTICS_PROVIDER: envField.enum({
+        context: 'client',
+        access: 'public',
+        values: ['none', 'plausible', 'cloudflare'],
+        default: 'none',
+      }),
+      PUBLIC_ANALYTICS_DOMAIN: envField.string({
+        context: 'client',
+        access: 'public',
+        optional: true,
+      }),
+      PUBLIC_CF_ANALYTICS_TOKEN: envField.string({
+        context: 'client',
+        access: 'public',
+        optional: true,
+      }),
       PUBLIC_TURNSTILE_SITE_KEY: envField.string({
         context: 'client',
         access: 'public',
@@ -74,7 +92,16 @@ export default defineConfig({
       ENQUIRY_MOCK: envField.boolean({ context: 'server', access: 'public', default: false }),
     },
   },
-  integrations: [devOnlyRoutes()],
+  integrations: [
+    devOnlyRoutes(),
+    sitemap({
+      // Pages that are noindex never appear in the sitemap.
+      // /enquire is listed only once the form is switched on (it answers 404 until then).
+      filter: (page) =>
+        !/\/(404|enquire\/thank-you)(\.html)?\/?$/.test(page) &&
+        (process.env.PUBLIC_ENQUIRY_ENABLED === 'true' || !/\/enquire\/?$/.test(page)),
+    }),
+  ],
   // The dev toolbar adds its own controls (including a "Menu" button); keep it out of e2e runs.
   devToolbar: { enabled: process.env.E2E !== '1' },
   trailingSlash: 'never',

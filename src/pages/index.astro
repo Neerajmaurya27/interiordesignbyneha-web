@@ -18,6 +18,7 @@ import { enquiryCta, site } from '../data/site';
 import { loadHome } from '../data/home';
 import { getProjects } from '../lib/projects';
 import { featuredForHome } from '../lib/project-rules';
+import { SHOW_FIXTURES } from '../lib/preview';
 import { routeExists } from '../lib/routes';
 
 const { content: home, usesSample } = await loadHome();
@@ -34,7 +35,7 @@ let testimonial =
     .map((t) => t.data)
     .find((t) => t.verified && t.permissionRef.length > 0) ?? null;
 
-if (import.meta.env.DEV && press.length === 0 && !testimonial) {
+if (SHOW_FIXTURES && press.length === 0 && !testimonial) {
   const { sampleCredibility } = await import('../fixtures/home/sample');
   press = sampleCredibility.press;
   testimonial = { ...sampleCredibility.testimonial, verified: false, permissionRef: 'sample' };

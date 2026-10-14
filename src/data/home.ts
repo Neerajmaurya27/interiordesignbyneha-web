@@ -5,6 +5,7 @@
  * can be reviewed; that sample never reaches a production build.
  */
 import type { ImageMetadata } from 'astro';
+import { SHOW_FIXTURES } from '../lib/preview';
 
 export interface HomeImage {
   src: ImageMetadata;
@@ -72,7 +73,7 @@ export const home: HomeContent = {
  * sample so every chapter can be designed; production returns the verified content unchanged.
  */
 export async function loadHome(): Promise<{ content: HomeContent; usesSample: boolean }> {
-  if (!import.meta.env.DEV) return { content: home, usesSample: false };
+  if (!SHOW_FIXTURES) return { content: home, usesSample: false };
   const { sampleHome } = await import('../fixtures/home/sample');
   return {
     usesSample: true,

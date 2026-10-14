@@ -16,6 +16,7 @@ import TextLink from '../../components/ui/TextLink.astro';
 import { craftPartners as realPartners, enquiryCta, site } from '../../data/site';
 import { loadHome } from '../../data/home';
 import { getPage, getPress, getTeam } from '../../lib/pages';
+import { SHOW_FIXTURES } from '../../lib/preview';
 import { routeExists } from '../../lib/routes';
 
 export async function getStaticPaths() {
@@ -36,7 +37,7 @@ const { content: home } = await loadHome();
 
 let partners = realPartners;
 let partnersSample = false;
-if (import.meta.env.DEV && partners.length === 0) {
+if (SHOW_FIXTURES && partners.length === 0) {
   partners = (await import('../../fixtures/home/sample')).sampleCraftPartners;
   partnersSample = true;
 }

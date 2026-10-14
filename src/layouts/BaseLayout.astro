@@ -11,8 +11,10 @@ import SiteHeader from '../components/site/SiteHeader.astro';
 import MobileMenu from '../components/site/MobileMenu.astro';
 import SiteFooter from '../components/site/SiteFooter.astro';
 import StickyEnquiryBar from '../components/site/StickyEnquiryBar.astro';
+import Analytics from '../components/site/Analytics.astro';
 import { enquiryCta, primaryNav, site } from '../data/site';
 import { hasMenuDestinations } from '../lib/routes';
+import { IS_PREVIEW_BUILD } from '../lib/preview';
 import { organizationJsonLd } from '../lib/jsonld';
 import '../styles/global.css';
 
@@ -60,13 +62,21 @@ const siteUrl = (Astro.site ?? new URL(Astro.url.origin)).href;
     <script is:inline>
       document.documentElement.classList.add('js');
     </script>
-    <Seo {title} {description} {ogImage} {ogType} {noindex} {alternates} />
+    <Seo
+      {title}
+      {description}
+      {ogImage}
+      {ogType}
+      noindex={noindex || IS_PREVIEW_BUILD}
+      {alternates}
+    />
     <Font cssVariable="--font-fraunces" preload />
     <Font cssVariable="--font-inter" />
     <meta name="theme-color" content="#f2ede4" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <JsonLd data={organizationJsonLd(site, siteUrl)} />
     <slot name="head" />
+    <Analytics />
   </head>
   <body class="relative">
     <div

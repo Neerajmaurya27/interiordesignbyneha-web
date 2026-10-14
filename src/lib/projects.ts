@@ -5,6 +5,7 @@
  */
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { isPublishable } from './project-rules';
+import { SHOW_FIXTURES } from './preview';
 
 type ProjectData = CollectionEntry<'projects'>['data'];
 
@@ -35,7 +36,7 @@ export async function getProjects(): Promise<Project[]> {
     .filter((entry) => isPublishable(entry.data))
     .map((entry) => toProject(entry, 'content', false));
 
-  if (!import.meta.env.DEV) return sortByIndex(published);
+  if (!SHOW_FIXTURES) return sortByIndex(published);
 
   const drafts = real
     .filter((entry) => !entry.data.published)

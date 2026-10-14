@@ -9,6 +9,7 @@
 
 import { parse } from 'yaml';
 import { isPublishable } from './project-rules';
+import { SHOW_FIXTURES } from './preview';
 
 const pageFiles = Object.keys(import.meta.glob('/src/pages/**/*.{astro,md,mdx,html}'));
 
@@ -44,12 +45,13 @@ export function isPublishedPage(raw: string | undefined): boolean {
   return (parse(match[1]!) as { published?: unknown } | null)?.published === true;
 }
 
-const hasPublishedProjects = countPublished(Object.values(projectSources)) > 0;
+// Preview builds include the fixture projects and pages, so their routes exist there too.
+const hasPublishedProjects = SHOW_FIXTURES || countPublished(Object.values(projectSources)) > 0;
 const contentGates: Record<string, boolean> = {
   '/projects': hasPublishedProjects,
   '/projects/[slug]': hasPublishedProjects,
-  '/approach': isPublishedPage(pageSources['/src/content/pages/approach.md']),
-  '/studio': isPublishedPage(pageSources['/src/content/pages/studio.md']),
+  '/approach': SHOW_FIXTURES || isPublishedPage(pageSources['/src/content/pages/approach.md']),
+  '/studio': SHOW_FIXTURES || isPublishedPage(pageSources['/src/content/pages/studio.md']),
   '/privacy': isPublishedPage(pageSources['/src/content/pages/privacy.md']),
   // The enquiry form is linked only once its accounts are live (set at build time) [V25].
   '/enquire': import.meta.env.PUBLIC_ENQUIRY_ENABLED === 'true',

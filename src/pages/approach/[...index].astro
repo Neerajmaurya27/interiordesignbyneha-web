@@ -17,6 +17,7 @@ import TextLink from '../../components/ui/TextLink.astro';
 import { enquiryCta, servicesByCity, site, type Region, type ServiceId } from '../../data/site';
 import { loadHome } from '../../data/home';
 import { getFaq, getPage } from '../../lib/pages';
+import { SHOW_FIXTURES } from '../../lib/preview';
 import { routeExists } from '../../lib/routes';
 
 export async function getStaticPaths() {
@@ -31,7 +32,7 @@ const { content: home, usesSample } = await loadHome();
 
 let services: Record<Region, ServiceId[]> = servicesByCity;
 let servicesSample = false;
-if (import.meta.env.DEV && Object.values(services).every((list) => list.length === 0)) {
+if (SHOW_FIXTURES && Object.values(services).every((list) => list.length === 0)) {
   const { sampleServicesByCity } = await import('../../fixtures/home/sample');
   services = { mumbai: [...sampleServicesByCity.mumbai], dubai: [...sampleServicesByCity.dubai] };
   servicesSample = true;

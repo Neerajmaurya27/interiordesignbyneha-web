@@ -1,0 +1,50 @@
+---
+/**
+ * Analytics provider and event script (brief §14). Cookieless only:
+ *  - "plausible": Plausible with custom events (PUBLIC_ANALYTICS_DOMAIN)
+ *  - "cloudflare": Cloudflare Web Analytics page views (PUBLIC_CF_ANALYTICS_TOKEN; no custom events)
+ *  - "none" (default): nothing is sent until a provider is chosen [V25]
+ */
+import {
+  PUBLIC_ANALYTICS_DOMAIN,
+  PUBLIC_ANALYTICS_PROVIDER,
+  PUBLIC_CF_ANALYTICS_TOKEN,
+} from 'astro:env/client';
+import { SHOW_FIXTURES } from '../../lib/preview';
+
+const plausible =
+  PUBLIC_ANALYTICS_PROVIDER === 'plausible' && !!PUBLIC_ANALYTICS_DOMAIN && !SHOW_FIXTURES;
+const cloudflare =
+  PUBLIC_ANALYTICS_PROVIDER === 'cloudflare' && !!PUBLIC_CF_ANALYTICS_TOKEN && !SHOW_FIXTURES;
+---
+
+<meta name="analytics" data-analytics-config data-collect={String(SHOW_FIXTURES)} />
+{plausible && (
+  <>
+    <script
+      is:inline
+      defer
+      data-domain={PUBLIC_ANALYTICS_DOMAIN}
+      src="https://plausible.io/js/script.js"
+    />
+    <script is:inline>
+      window.plausible =
+        window.plausible ||
+        function (...args) {
+          (window.plausible.q = window.plausible.q || []).push(args);
+        };
+    </script>
+  </>
+)}
+{cloudflare && (
+  <script
+    is:inline
+    defer
+    src="https://static.cloudflareinsights.com/beacon.min.js"
+    data-cf-beacon={JSON.stringify({ token: PUBLIC_CF_ANALYTICS_TOKEN })}
+  />
+)}
+
+<script>
+  import '../../scripts/analytics';
+</script>

@@ -1,9 +1,13 @@
 ---
+import { SHOW_FIXTURES } from '../../lib/preview';
 /** `astro dev` only: reminds reviewers that the page is showing fixtures and sample copy. */
 ---
 
-{import.meta.env.DEV && (
-  <p class="pointer-events-none fixed end-2 top-[calc(var(--header-height)+0.5rem)] z-50 rounded-button bg-olive px-2 py-1 text-[0.75rem] leading-tight text-paper">
+{SHOW_FIXTURES && (
+  <p
+    data-dev-only
+    class="pointer-events-none fixed end-2 top-[calc(var(--header-height)+0.5rem)] z-50 rounded-button bg-olive px-2 py-1 text-[0.75rem] leading-tight text-paper"
+  >
     Dev preview · fixtures and sample copy
   </p>
 )}

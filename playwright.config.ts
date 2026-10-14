@@ -6,6 +6,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: 'tests/e2e',
+  globalSetup: './tests/e2e/global-setup.ts',
   fullyParallel: true,
   // The dev server renders /enquire through the Workers runtime; more than two parallel workers
   // overload it on a 4-core machine and cause timeouts.

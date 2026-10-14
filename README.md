@@ -12,19 +12,22 @@ The full plan, including the register of facts still to be verified, is in
 
 ## Commands
 
-| Command             | What it does                                                                              |
-| ------------------- | ----------------------------------------------------------------------------------------- |
-| `pnpm dev`          | Dev server at http://localhost:4321; tokens at `/dev/tokens`                              |
-| `pnpm build`        | Production build to `dist/`, then the placeholder guard                                   |
-| `pnpm preview`      | Serve the production build                                                                |
-| `pnpm check`        | Astro + TypeScript type check                                                             |
-| `pnpm lint`         | ESLint (TypeScript, Astro, jsx-a11y strict)                                               |
-| `pnpm format:check` | Prettier                                                                                  |
-| `pnpm test`         | Unit tests (Vitest), including token contrast checks                                      |
-| `pnpm test:e2e`     | Playwright end-to-end tests (starts the dev server)                                       |
-| `pnpm launch:check` | After a build: fails until hero, published work, enquiry form and privacy notice are live |
-| `pnpm assets`       | Asset inventory per project (`--fixtures` for a dry run)                                  |
-| `pnpm verify`       | Everything above, as CI runs it                                                           |
+| Command                   | What it does                                                                              |
+| ------------------------- | ----------------------------------------------------------------------------------------- |
+| `pnpm dev`                | Dev server at http://localhost:4321; tokens at `/dev/tokens`                              |
+| `pnpm build`              | Production build, then placeholder guard, image audit and internal link check             |
+| `pnpm build:preview`      | Production bundle with fixtures (noindex) for PR previews, Lighthouse and link checks     |
+| `pnpm preview`            | Serve the production build                                                                |
+| `pnpm check`              | Astro + TypeScript type check                                                             |
+| `pnpm lint`               | ESLint (TypeScript, Astro, jsx-a11y strict)                                               |
+| `pnpm format:check`       | Prettier                                                                                  |
+| `pnpm test`               | Unit tests (Vitest), including token contrast checks                                      |
+| `pnpm test:e2e`           | Playwright end-to-end tests (starts the dev server)                                       |
+| `pnpm launch:check`       | After a build: fails until hero, published work, enquiry form and privacy notice are live |
+| `pnpm assets`             | Asset inventory per project (`--fixtures` for a dry run)                                  |
+| `pnpm lighthouse`         | Lighthouse CI on the preview build (mobile budgets; run `pnpm build:preview` first)       |
+| `pnpm test:visual:update` | Regenerate visual baselines (on Linux, as in CI)                                          |
+| `pnpm verify`             | Everything above, as CI runs it                                                           |
 
 ## Design system
 
@@ -94,6 +97,32 @@ The full plan, including the register of facts still to be verified, is in
   motion removes it and every transform.
 - Heights use `svh` inside `@supports`, with `vh` for older Safari.
 - Real-device checks that cannot be automated: [docs/device-testing.md](docs/device-testing.md).
+
+## Quality gates (CI)
+
+`.github/workflows/ci.yml` runs on every pull request and on `main`:
+
+1. Type check, lint, format, unit tests, production build (placeholder guard, image audit,
+   internal links).
+2. Playwright: functional e2e, axe (WCAG 2.2 AA, zero violations) on every route and in open
+   dialogs, responsive sweep, motion and reduced motion, analytics events, and visual regression
+   at 390/768/1440px (baselines in `tests/e2e/visual.spec.ts-snapshots`).
+3. Preview build → Lighthouse CI (mobile: performance ≥ 0.9, LCP ≤ 2.5s, CLS ≤ 0.1, TBT ≤ 200ms,
+   JS ≤ 30 KB, CSS ≤ 40 KB, ≤ 5 fonts) and lychee (internal and external links).
+
+`.github/workflows/deploy.yml`: pull requests upload a Cloudflare preview (fixtures, noindex,
+robots disallow); `main` deploys the production build. Both wait for the `CLOUDFLARE_API_TOKEN`
+and `CLOUDFLARE_ACCOUNT_ID` secrets; public settings come from repository variables (`SITE_URL`,
+`PUBLIC_ENQUIRY_ENABLED`, `PUBLIC_TURNSTILE_SITE_KEY`, `PUBLIC_ANALYTICS_*`).
+
+## SEO and analytics
+
+- Unique title, description, canonical and Open Graph tags per page; JSON-LD for the studio, each
+  case study (CreativeWork) and breadcrumbs. `sitemap-index.xml` lists indexable pages only;
+  `robots.txt` allows crawling and points to it (preview builds disallow everything).
+- Cookieless analytics (`PUBLIC_ANALYTICS_PROVIDER`: none, plausible, cloudflare). Events per
+  brief §14 are wired through `data-analytics` attributes and `src/scripts/analytics.ts`; no
+  personal data is sent.
 
 ## Content rules
 

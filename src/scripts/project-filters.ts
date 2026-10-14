@@ -71,6 +71,13 @@ if (nav && cards.length > 0) {
     event.preventDefault();
     history.replaceState(history.state, '', link.href);
     apply();
+    const { type, city } = current();
+    nav.dispatchEvent(
+      new CustomEvent('analytics', {
+        bubbles: true,
+        detail: { name: 'filter_change', type, city },
+      }),
+    );
   });
   window.addEventListener('popstate', apply);
   window.addEventListener('pageshow', apply); // restores state when returning via bfcache
