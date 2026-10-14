@@ -1,0 +1,82 @@
+---
+/**
+ * Footer on an espresso band: wordmark, offices (verified details only), navigation, socials.
+ * Sand for secondary text, never terracotta (fails on espresso).
+ * #site-footer-nav is also the no-JavaScript target of the mobile "Menu" link.
+ */
+import Wordmark from './Wordmark.astro';
+import OfficeContacts from './OfficeContacts.astro';
+import { footerNav, site } from '../../data/site';
+import { existingOnly } from '../../lib/routes';
+
+interface Props {
+  pageTitle: string;
+}
+
+const { pageTitle } = Astro.props;
+const nav = existingOnly(footerNav);
+const year = new Date().getFullYear();
+const link = 'underline decoration-1 underline-offset-[0.2em] hover:decoration-2';
+---
+
+<footer id="site-footer" class="on-espresso bg-espresso text-limewash" data-enquiry-bar-hide>
+  <div class="grid-page gap-y-12 py-16 desktop:py-24">
+    <div class="col-span-full flex flex-col gap-3 desktop:col-span-4">
+      <Wordmark />
+      <p class="text-sand">{site.description}</p>
+    </div>
+
+    <section aria-labelledby="footer-offices" class="col-span-full desktop:col-span-5">
+      <h2 id="footer-offices" class="type-label mb-4 font-sans text-sand">
+        Studio
+      </h2>
+      <OfficeContacts {pageTitle} tone="espresso" />
+      {site.email && (
+        <p class="mt-6">
+          <a href={`mailto:${site.email}`} class={link} data-analytics="email_click">
+            {site.email}
+          </a>
+        </p>
+      )}
+    </section>
+
+    {nav.length > 0 && (
+      <nav
+        id="site-footer-nav"
+        aria-labelledby="footer-nav-heading"
+        class="col-span-full desktop:col-span-3"
+        tabindex="-1"
+      >
+        <h2 id="footer-nav-heading" class="type-label mb-4 font-sans text-sand">
+          Explore
+        </h2>
+        <ul class="flex flex-col gap-2">
+          {nav.map((item) => (
+            <li>
+              <a href={item.href} class={link}>
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )}
+
+    <div class="col-span-full flex flex-col gap-4 border-t border-sand/30 pt-8 text-caption text-sand tablet:flex-row tablet:justify-between">
+      <p>
+        © {year} {site.name}
+      </p>
+      {site.socials.length > 0 && (
+        <ul class="flex gap-6">
+          {site.socials.map((s) => (
+            <li>
+              <a href={s.url} class={link} rel="me noopener" target="_blank">
+                {s.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
+</footer>

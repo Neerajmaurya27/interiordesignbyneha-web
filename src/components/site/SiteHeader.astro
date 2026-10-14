@@ -1,0 +1,189 @@
+---
+/**
+ * Site header (brief §5, §7). 56px mobile / 72px desktop.
+ * - Over a hero it starts transparent with a soft top gradient, then turns solid limewash with a
+ *   hairline once an 80px sentinel scrolls out of view (IntersectionObserver, no scroll handler).
+ * - Desktop nav from 900px: wordmark · Projects · Approach · Studio · [Discuss your project].
+ * - Mobile: wordmark · WhatsApp icon (when a number is verified) · Menu.
+ * Without JavaScript an over-hero header scrolls away with the page instead of sticking, so it
+ * never sits transparent over body text.
+ */
+import Wordmark from './Wordmark.astro';
+import WhatsAppLink from './WhatsAppLink.astro';
+import WhatsAppIcon from './WhatsAppIcon.astro';
+import { enquiryCta, primaryNav, site } from '../../data/site';
+import { existingOnly, hasMenuDestinations, routeExists } from '../../lib/routes';
+
+interface Props {
+  overHero?: boolean;
+  /** Title used in WhatsApp prefills. */
+  pageTitle: string;
+}
+
+const { overHero = false, pageTitle } = Astro.props;
+const nav = existingOnly(primaryNav);
+const showCta = routeExists(enquiryCta.href);
+const hasMenu = hasMenuDestinations(primaryNav, enquiryCta);
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`);
+const whatsappRegion = site.offices.find((o) => o.whatsapp)?.region;
+---
+
+<header
+  data-site-header
+  data-over-hero={overHero ? '' : undefined}
+  data-solid={overHero ? undefined : ''}
+  class="site-header z-40 h-(--header-height)"
+>
+  <div class="mx-auto flex h-full max-w-(--container-cap) items-center justify-between gap-6 px-5 tablet:px-8 desktop:px-16 wide:px-24">
+    <Wordmark />
+
+    {hasMenu && (
+      <nav aria-label="Main" class="hidden nav:block">
+        <ul class="flex items-center gap-8">
+          {nav.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                aria-current={isCurrent(item.href) ? 'page' : undefined}
+                class="nav-link"
+              >
+                {item.label}
+              </a>
+            </li>
+          ))}
+          {showCta && (
+            <li>
+              <a
+                href={enquiryCta.href}
+                class="header-cta"
+                aria-current={isCurrent(enquiryCta.href) ? 'page' : undefined}
+                data-analytics="cta_click"
+                data-location="header"
+              >
+                {enquiryCta.label}
+              </a>
+            </li>
+          )}
+        </ul>
+      </nav>
+    )}
+
+    <div class="flex items-center gap-1 nav:hidden">
+      {whatsappRegion && (
+        <WhatsAppLink
+          region={whatsappRegion}
+          from={pageTitle}
+          label="WhatsApp the studio"
+          class="grid size-11 place-items-center"
+        >
+          <WhatsAppIcon />
+        </WhatsAppLink>
+      )}
+      {hasMenu && (
+        <a
+          href="#site-footer-nav"
+          data-menu-open
+          aria-haspopup="dialog"
+          aria-controls="mobile-menu"
+          class="grid min-h-11 place-items-center px-2 font-medium no-underline"
+        >
+          Menu
+        </a>
+      )}
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: relative;
+    color: var(--color-espresso);
+    background-color: transparent;
+    border-block-end: 1px solid transparent;
+    transition:
+      background-color var(--dur-ui) var(--ease-standard),
+      color var(--dur-ui) var(--ease-standard),
+      border-color var(--dur-ui) var(--ease-standard);
+  }
+
+  /* With JS the header sticks; without it, an over-hero header scrolls away. */
+  :global(html.js) .site-header,
+  .site-header:not([data-over-hero]) {
+    position: sticky;
+    inset-block-start: 0;
+  }
+
+  .site-header[data-over-hero] {
+    margin-block-end: calc(-1 * var(--header-height));
+  }
+
+  .site-header[data-solid] {
+    background-color: var(--color-limewash);
+    border-block-end-color: var(--color-hairline);
+  }
+
+  /* Over the hero: paper text on a soft espresso gradient so it reads on any photograph. */
+  .site-header[data-over-hero]:not([data-solid]) {
+    color: var(--color-paper);
+    background-image: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-espresso) 55%, transparent),
+      transparent
+    );
+    /* Paint the gradient under the transparent border too; otherwise it repeats into it as a line. */
+    background-origin: border-box;
+  }
+
+  .site-header[data-over-hero]:not([data-solid]) :focus-visible {
+    outline-color: var(--color-paper);
+  }
+
+  .nav-link {
+    text-decoration-line: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.3em;
+    transition: text-decoration-color var(--dur-micro) var(--ease-standard);
+  }
+
+  .nav-link:hover,
+  .nav-link[aria-current='page'] {
+    text-decoration-color: currentColor;
+  }
+
+  .header-cta {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+    padding-inline: 1.25rem;
+    border: 1px solid currentColor;
+    border-radius: var(--radius-button);
+    text-decoration: none;
+    font-weight: 500;
+    transition:
+      background-color var(--dur-micro) var(--ease-standard),
+      color var(--dur-micro) var(--ease-standard);
+  }
+
+  .site-header[data-solid] .header-cta:hover {
+    background-color: var(--color-espresso);
+    color: var(--color-limewash);
+  }
+
+  .site-header[data-over-hero]:not([data-solid]) .header-cta:hover {
+    background-color: var(--color-paper);
+    color: var(--color-espresso);
+  }
+</style>
+
+<script>
+  // Purpose: orientation. Solid header once the 80px sentinel leaves the viewport.
+  const header = document.querySelector<HTMLElement>('[data-site-header][data-over-hero]');
+  const sentinel = document.querySelector('[data-header-sentinel]');
+  if (header && sentinel) {
+    new IntersectionObserver(([entry]) => {
+      header.toggleAttribute('data-solid', !entry?.isIntersecting);
+    }).observe(sentinel);
+  }
+</script>

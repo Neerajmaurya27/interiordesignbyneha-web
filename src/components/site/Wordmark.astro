@@ -1,0 +1,32 @@
+---
+/**
+ * Studio wordmark. Text set in Fraunces until the real wordmark SVG is supplied [V20].
+ * Links home only once the home page exists.
+ */
+import { site } from '../../data/site';
+import { routeExists } from '../../lib/routes';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+const linkHome = routeExists('/');
+const isHome = Astro.url.pathname === '/';
+const Tag = linkHome ? 'a' : 'span';
+---
+
+<Tag
+  href={linkHome ? '/' : undefined}
+  aria-current={linkHome && isHome ? 'page' : undefined}
+  class:list={[
+    'font-display text-[1.25rem] leading-none tracking-[-0.01em] no-underline',
+    className,
+  ]}
+>
+  {site.wordmarkSrc ? (
+    <img src={site.wordmarkSrc} alt={site.name} class="h-6 w-auto bg-transparent" />
+  ) : (
+    site.name
+  )}
+</Tag>

@@ -1,0 +1,53 @@
+---
+/**
+ * Per-page head metadata: title, description, canonical, Open Graph/Twitter and hreflang.
+ * Titles follow "Page | interiordesignbyneha"; the home page passes its full title.
+ */
+import { site } from '../../data/site';
+
+export interface Alternate {
+  hreflang: string;
+  href: string;
+}
+
+interface Props {
+  title: string;
+  description: string;
+  /** Absolute or root-relative 1200×630 image. Falls back to the site default once supplied. */
+  ogImage?: string | undefined;
+  ogType?: 'website' | 'article' | undefined;
+  noindex?: boolean | undefined;
+  alternates?: Alternate[] | undefined;
+}
+
+const {
+  title,
+  description,
+  ogImage = site.defaultOgImage ?? undefined,
+  ogType = 'website',
+  noindex = false,
+  alternates = [],
+} = Astro.props;
+
+const siteUrl = Astro.site ?? new URL(Astro.url.origin);
+const canonical = new URL(Astro.url.pathname, siteUrl).href;
+const image = ogImage ? new URL(ogImage, siteUrl).href : undefined;
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex" />}
+{alternates.map((alt) => (
+  <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
+))}
+<meta property="og:site_name" content={site.name} />
+<meta property="og:locale" content={site.locale} />
+<meta property="og:type" content={ogType} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+{image && <meta property="og:image" content={image} />}
+{image && <meta property="og:image:width" content="1200" />}
+{image && <meta property="og:image:height" content="630" />}
+<meta name="twitter:card" content={image ? 'summary_large_image' : 'summary'} />

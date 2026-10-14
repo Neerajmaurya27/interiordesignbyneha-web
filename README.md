@@ -21,6 +21,7 @@ The full plan, including the register of facts still to be verified, is in
 | `pnpm lint`         | ESLint (TypeScript, Astro, jsx-a11y strict)                  |
 | `pnpm format:check` | Prettier                                                     |
 | `pnpm test`         | Unit tests (Vitest), including token contrast checks         |
+| `pnpm test:e2e`     | Playwright end-to-end tests (starts the dev server)          |
 | `pnpm verify`       | Everything above, as CI runs it                              |
 
 ## Design system
@@ -35,7 +36,16 @@ The full plan, including the register of facts still to be verified, is in
   - `Field`, `ChoiceCard`
 - **Fonts:** loaded via the Astro Fonts API (`astro.config.mjs`). Two WOFF2 files; Fraunces is preloaded.
   Metric-matched fallbacks are generated automatically.
-- **Dev reference:** `src/dev/tokens.astro` is mounted at `/dev/tokens` during `pnpm dev` only.
+- **Dev reference pages:** `src/dev/tokens.astro` (`/dev/tokens`) and `src/dev/layout.astro`
+  (`/dev/layout`, the shell test page) are mounted during `pnpm dev` only.
+
+## Site shell
+
+- `src/layouts/BaseLayout.astro` wraps every page in the head metadata, skip link, header, mobile
+  menu, footer and sticky mobile enquiry bar. Pass `overHero` when a page opens with a full-bleed hero.
+- `src/data/site.ts` holds studio facts. Unverified values are `null` and the UI omits them.
+- `src/lib/routes.ts` makes navigation link only to pages that exist in production builds. In
+  `pnpm dev` every link shows, so the full navigation can be reviewed early.
 
 ## Content rules
 

@@ -1,0 +1,34 @@
+---
+/** Breadcrumb trail ("Projects / {title}") with matching BreadcrumbList JSON-LD. */
+import JsonLd from './JsonLd.astro';
+import { breadcrumbJsonLd, type Crumb } from '../../lib/jsonld';
+
+interface Props {
+  /** Ancestors first; the last item is the current page. */
+  items: Crumb[];
+}
+
+const { items } = Astro.props;
+const siteUrl = (Astro.site ?? new URL(Astro.url.origin)).href;
+---
+
+<nav aria-label="Breadcrumb" class="text-caption text-taupe">
+  <ol class="flex flex-wrap gap-x-2">
+    {items.map((item, i) =>
+      i === items.length - 1 ? (
+        <li aria-current="page">{item.name}</li>
+      ) : (
+        <li class="flex gap-x-2">
+          <a
+            href={item.href}
+            class="underline decoration-1 underline-offset-[0.2em] hover:decoration-2"
+          >
+            {item.name}
+          </a>
+          <span aria-hidden="true">/</span>
+        </li>
+      ),
+    )}
+  </ol>
+</nav>
+<JsonLd data={breadcrumbJsonLd(items, siteUrl)} />

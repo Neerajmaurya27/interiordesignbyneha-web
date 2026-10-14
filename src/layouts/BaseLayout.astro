@@ -1,20 +1,55 @@
 ---
 /**
- * Base document. Phase 2 provides the head essentials, fonts and global styles; Phase 3 adds
- * the skip link, header, footer, SEO and JSON-LD.
+ * Base document for every page: head metadata, fonts, skip link, header, mobile menu, footer and
+ * the sticky mobile enquiry bar. Pages put their content in the default slot (inside <main>).
  */
 import { Font } from 'astro:assets';
+import Seo, { type Alternate } from '../components/site/Seo.astro';
+import JsonLd from '../components/site/JsonLd.astro';
+import SkipLink from '../components/site/SkipLink.astro';
+import SiteHeader from '../components/site/SiteHeader.astro';
+import MobileMenu from '../components/site/MobileMenu.astro';
+import SiteFooter from '../components/site/SiteFooter.astro';
+import StickyEnquiryBar from '../components/site/StickyEnquiryBar.astro';
+import { enquiryCta, primaryNav, site } from '../data/site';
+import { hasMenuDestinations } from '../lib/routes';
+import { organizationJsonLd } from '../lib/jsonld';
 import '../styles/global.css';
 
 interface Props {
+  /** Full <title>, e.g. "Projects | interiordesignbyneha". */
   title: string;
-  description?: string;
+  description: string;
+  /** Short name used in WhatsApp prefills ("From: …"). Defaults to the title. */
+  pageName?: string;
+  ogImage?: string;
+  ogType?: 'website' | 'article';
+  noindex?: boolean;
+  alternates?: Alternate[];
   lang?: string;
   dir?: 'ltr' | 'rtl';
-  noindex?: boolean;
+  /** The page opens with a full-bleed hero: the header starts transparent over it. */
+  overHero?: boolean;
+  /** Hide the sticky mobile enquiry bar (e.g. on /enquire itself). */
+  enquiryBar?: boolean;
 }
 
-const { title, description, lang = 'en', dir = 'ltr', noindex = false } = Astro.props;
+const {
+  title,
+  description,
+  pageName = title,
+  ogImage,
+  ogType,
+  noindex,
+  alternates,
+  lang = 'en',
+  dir = 'ltr',
+  overHero = false,
+  enquiryBar = true,
+} = Astro.props;
+
+const hasMenu = hasMenuDestinations(primaryNav, enquiryCta);
+const siteUrl = (Astro.site ?? new URL(Astro.url.origin)).href;
 ---
 
 <!doctype html>
@@ -22,13 +57,30 @@ const { title, description, lang = 'en', dir = 'ltr', noindex = false } = Astro.
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
-    {description && <meta name="description" content={description} />}
-    {noindex && <meta name="robots" content="noindex" />}
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+    <Seo {title} {description} {ogImage} {ogType} {noindex} {alternates} />
     <Font cssVariable="--font-fraunces" preload />
     <Font cssVariable="--font-inter" />
+    <meta name="theme-color" content="#f2ede4" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <JsonLd data={organizationJsonLd(site, siteUrl)} />
+    <slot name="head" />
   </head>
-  <body>
-    <slot />
+  <body class="relative">
+    <div
+      data-header-sentinel
+      aria-hidden="true"
+      class="pointer-events-none absolute top-20 h-px w-px"
+    ></div>
+    <SkipLink />
+    <SiteHeader {overHero} pageTitle={pageName} />
+    <main id="main" tabindex="-1" class="focus:outline-none">
+      <slot />
+    </main>
+    <SiteFooter pageTitle={pageName} />
+    {hasMenu && <MobileMenu pageTitle={pageName} />}
+    {enquiryBar && <StickyEnquiryBar pageTitle={pageName} />}
   </body>
 </html>

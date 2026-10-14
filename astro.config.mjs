@@ -14,6 +14,7 @@ function devOnlyRoutes() {
       'astro:config:setup': ({ command, injectRoute }) => {
         if (command !== 'dev') return;
         injectRoute({ pattern: '/dev/tokens', entrypoint: './src/dev/tokens.astro' });
+        injectRoute({ pattern: '/dev/layout', entrypoint: './src/dev/layout.astro' });
       },
     },
   };
@@ -23,6 +24,8 @@ export default defineConfig({
   site,
   output: 'static',
   integrations: [devOnlyRoutes()],
+  // The dev toolbar adds its own controls (including a "Menu" button); keep it out of e2e runs.
+  devToolbar: { enabled: process.env.E2E !== '1' },
   trailingSlash: 'never',
   build: { format: 'file' },
   fonts: [

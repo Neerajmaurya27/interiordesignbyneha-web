@@ -1,0 +1,35 @@
+---
+/**
+ * WhatsApp link for one office. Renders nothing until that office's number is verified [V17],
+ * so the site never shows a dead or invented contact.
+ */
+import { site, whatsappMessage, type Region } from '../../data/site';
+import { whatsappUrl } from '../../lib/whatsapp';
+
+interface Props {
+  region: Region;
+  /** Page or project title for the prefill "(From: …)". */
+  from: string;
+  class?: string;
+  /** Accessible name when the visible content is an icon only. */
+  label?: string;
+}
+
+const { region, from, class: className, label } = Astro.props;
+const office = site.offices.find((o) => o.region === region);
+const href = office?.whatsapp ? whatsappUrl(office.whatsapp, whatsappMessage(from)) : null;
+---
+
+{href && (
+  <a
+    {href}
+    class={className}
+    aria-label={label}
+    rel="noopener"
+    target="_blank"
+    data-analytics="whatsapp_click"
+    data-city={region}
+  >
+    <slot>WhatsApp {office!.city}</slot>
+  </a>
+)}

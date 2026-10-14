@@ -1,0 +1,157 @@
+---
+/**
+ * Full-screen mobile menu (below 900px). A modal <dialog>: focus is trapped natively, Escape
+ * closes it, and focus returns to the "Menu" control. Without JavaScript the "Menu" link jumps
+ * to the footer navigation instead.
+ */
+import Wordmark from './Wordmark.astro';
+import OfficeContacts from './OfficeContacts.astro';
+import Button from '../ui/Button.astro';
+import { enquiryCta, primaryNav } from '../../data/site';
+import { existingOnly, routeExists } from '../../lib/routes';
+
+interface Props {
+  pageTitle: string;
+}
+
+const { pageTitle } = Astro.props;
+const nav = existingOnly(primaryNav);
+const showCta = routeExists(enquiryCta.href);
+---
+
+<dialog id="mobile-menu" data-mobile-menu aria-label="Menu" class="mobile-menu">
+  <div class="flex min-h-full flex-col">
+    <div class="flex h-(--header-height) items-center justify-between px-5 tablet:px-8">
+      <Wordmark />
+      <button
+        type="button"
+        data-menu-close
+        class="grid min-h-11 place-items-center px-2 font-medium"
+      >
+        Close
+      </button>
+    </div>
+    <nav aria-label="Main menu" class="px-5 pt-8 tablet:px-8">
+      <ul class="flex flex-col gap-4">
+        {nav.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="font-display text-h1 leading-(--text-h1--line-height) no-underline"
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+    <div class="mt-auto flex flex-col gap-8 px-5 pt-12 pb-10 tablet:px-8">
+      <OfficeContacts {pageTitle} />
+      {showCta && (
+        <Button href={enquiryCta.href} fullWidth data-analytics="cta_click" data-location="menu">
+          {enquiryCta.label}
+        </Button>
+      )}
+    </div>
+  </div>
+</dialog>
+
+<style>
+  .mobile-menu {
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    max-inline-size: none;
+    max-block-size: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background-color: var(--color-limewash);
+    color: var(--color-espresso);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .mobile-menu::backdrop {
+    background-color: var(--color-limewash);
+  }
+
+  /* Purpose: orientation. A short fade so the panel does not appear to jump. */
+  @media (prefers-reduced-motion: no-preference) {
+    .mobile-menu[open] {
+      animation: menu-in var(--dur-ui) var(--ease-standard);
+    }
+  }
+
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  :global(html:has(.mobile-menu[open])) {
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('[data-mobile-menu]');
+  const openers = document.querySelectorAll<HTMLAnchorElement>('[data-menu-open]');
+  let lastOpener: HTMLElement | null = null;
+
+  if (dialog) {
+    openers.forEach((opener) => {
+      opener.setAttribute('role', 'button');
+      opener.setAttribute('aria-expanded', 'false');
+      opener.addEventListener('click', (event) => {
+        event.preventDefault();
+        lastOpener = opener;
+        dialog.showModal();
+        opener.setAttribute('aria-expanded', 'true');
+      });
+      opener.addEventListener('keydown', (event) => {
+        // role="button" should also respond to Space.
+        if (event.key === ' ') {
+          event.preventDefault();
+          opener.click();
+        }
+      });
+    });
+
+    dialog.querySelector('[data-menu-close]')?.addEventListener('click', () => dialog.close());
+
+    // A modal dialog makes the page inert, but Tab can still leave for the browser's own UI.
+    // Wrap focus so it cycles within the menu while it is open.
+    dialog.addEventListener('keydown', (event) => {
+      if (event.key !== 'Tab') return;
+      const focusable = [
+        ...dialog.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'),
+      ].filter((el) => el.offsetParent !== null);
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+
+    // Following a link closes the menu (matters for in-page anchors).
+    dialog.addEventListener('click', (event) => {
+      if ((event.target as Element).closest('a')) dialog.close();
+    });
+
+    dialog.addEventListener('close', () => {
+      openers.forEach((o) => o.setAttribute('aria-expanded', 'false'));
+      lastOpener?.focus();
+    });
+
+    // The menu only exists below the desktop-nav breakpoint.
+    matchMedia('(min-width: 56.25rem)').addEventListener('change', (event) => {
+      if (event.matches && dialog.open) dialog.close();
+    });
+  }
+</script>

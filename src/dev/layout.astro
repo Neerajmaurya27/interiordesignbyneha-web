@@ -1,0 +1,75 @@
+---
+/**
+ * Dev-only shell test page at /dev/layout: transparent-over-hero header, mobile menu, footer,
+ * sticky enquiry bar and breadcrumb. Content is structural filler, never studio copy.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Picture from '../components/ui/Picture.astro';
+import ChapterLabel from '../components/ui/ChapterLabel.astro';
+import Breadcrumb from '../components/site/Breadcrumb.astro';
+import Field from '../components/ui/Field.astro';
+import Button from '../components/ui/Button.astro';
+import landscape from '../assets/fixtures/fixture-landscape-3x2.jpg';
+import portrait from '../assets/fixtures/fixture-portrait-4x5.jpg';
+
+const sections = [1, 2, 3, 4];
+---
+
+<BaseLayout title="Layout test (dev)" description="Shell test page." overHero noindex>
+  <section class="relative h-[88svh] overflow-clip" data-enquiry-bar-start>
+    <Picture
+      src={landscape}
+      mobileSrc={portrait}
+      alt="Flat stone-coloured test image"
+      sizes="100vw"
+      widthSet="full-bleed"
+      priority
+      class="absolute inset-0"
+      imgClass="h-full w-full object-cover"
+    />
+    <div class="absolute inset-x-0 bottom-0 h-[45%] bg-linear-to-t from-espresso/70 to-transparent"></div>
+    <div class="grid-page absolute inset-x-0 bottom-0 pb-12">
+      <h1 class="type-display col-span-full text-paper desktop:col-span-7">Shell test page</h1>
+    </div>
+  </section>
+
+  <div class="grid-page gap-y-16 py-(--spacing-section)">
+    <div class="col-span-full">
+      <Breadcrumb
+        items={[
+          { name: 'Dev', href: '/dev/tokens' },
+          { name: 'Layout test', href: '/dev/layout' },
+        ]}
+      />
+    </div>
+    {sections.map((n) => (
+      <section id={`section-${n}`} class="col-span-full flex flex-col gap-4 desktop:col-span-8">
+        <ChapterLabel number={n}>Section {n}</ChapterLabel>
+        <h2>Structural section {n}</h2>
+        <p>
+          Filler paragraph to create scroll length. It checks the header turning solid, the sticky
+          enquiry bar appearing after the hero, and focus staying clear of both.
+        </p>
+        <p>
+          <a href={`#section-${n + 1}`} class="underline">
+            Jump to next section
+          </a>
+        </p>
+        <div class="h-64 bg-stone" />
+      </section>
+    ))}
+    <section id="section-5" class="col-span-full desktop:col-span-6">
+      <form class="flex flex-col gap-6 bg-paper p-8" onsubmit="return false">
+        <h2>Test form</h2>
+        <Field id="t-name" name="name" label="Full name" autocomplete="name" />
+        <Button type="submit">Submit</Button>
+      </form>
+    </section>
+  </div>
+
+  <section class="on-espresso bg-espresso py-24 text-limewash" data-enquiry-bar-hide>
+    <div class="grid-page">
+      <h2 class="col-span-full">Enquiry band stand-in</h2>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,141 @@
+---
+/**
+ * Sticky mobile enquiry bar (below 600px, brief §7). 52px, "Discuss your project" + WhatsApp.
+ * - Appears once the start marker ([data-enquiry-bar-start], else the header sentinel) has
+ *   scrolled out of view.
+ * - Hidden while any [data-enquiry-bar-hide] element (enquiry band, footer) or a form is in view.
+ * - Scroll-padding and extra footer padding reserve its height, so it never covers content or focus.
+ * Without JavaScript it stays hidden; the header and footer still offer every route.
+ */
+import Button from '../ui/Button.astro';
+import WhatsAppLink from './WhatsAppLink.astro';
+import WhatsAppIcon from './WhatsAppIcon.astro';
+import { enquiryCta, site } from '../../data/site';
+import { routeExists } from '../../lib/routes';
+
+interface Props {
+  pageTitle: string;
+}
+
+const { pageTitle } = Astro.props;
+const showCta = routeExists(enquiryCta.href);
+const whatsappRegion = site.offices.find((o) => o.whatsapp)?.region;
+const render = showCta || whatsappRegion !== undefined;
+---
+
+{render && (
+  <div data-enquiry-bar class="enquiry-bar" hidden>
+    {showCta && (
+      <Button
+        href={enquiryCta.href}
+        fullWidth
+        class="min-h-11"
+        data-analytics="cta_click"
+        data-location="sticky-bar"
+      >
+        {enquiryCta.label}
+      </Button>
+    )}
+    {whatsappRegion && (
+      <WhatsAppLink
+        region={whatsappRegion}
+        from={pageTitle}
+        label="WhatsApp the studio"
+        class="grid size-11 shrink-0 place-items-center rounded-button border border-espresso"
+      >
+        <WhatsAppIcon />
+      </WhatsAppLink>
+    )}
+  </div>
+)}
+
+<style>
+  .enquiry-bar {
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-block-size: 3.25rem;
+    padding: 0.25rem 1.25rem calc(0.25rem + env(safe-area-inset-bottom));
+    background-color: var(--color-limewash);
+    border-block-start: 1px solid var(--color-hairline);
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(100%);
+    transition:
+      opacity var(--dur-ui) var(--ease-standard),
+      transform var(--dur-ui) var(--ease-standard),
+      visibility 0s linear var(--dur-ui);
+  }
+
+  /* Mobile only. A scoped display rule would otherwise beat the tablet:hidden utility. */
+  @media (min-width: 37.5rem) {
+    .enquiry-bar {
+      display: none;
+    }
+  }
+
+  .enquiry-bar[data-visible] {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--dur-ui) var(--ease-standard),
+      transform var(--dur-ui) var(--ease-standard),
+      visibility 0s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .enquiry-bar,
+    .enquiry-bar[data-visible] {
+      transform: none;
+    }
+  }
+
+  /* Reserve the bar's height so nothing (including focused elements) is ever covered. */
+  @media (max-width: 37.4375rem) {
+    :global(html:has([data-enquiry-bar])) {
+      scroll-padding-block-end: calc(3.25rem + env(safe-area-inset-bottom) + 1rem);
+    }
+
+    /* The page end reserves the bar's height inside the espresso footer, not below it. */
+    :global(body:has([data-enquiry-bar]) #site-footer) {
+      padding-block-end: calc(3.25rem + env(safe-area-inset-bottom));
+    }
+  }
+</style>
+
+<script>
+  // Purpose: orientation — keep the enquiry route one tap away once the visitor is reading.
+  const bar = document.querySelector<HTMLElement>('[data-enquiry-bar]');
+  const start =
+    document.querySelector('[data-enquiry-bar-start]') ??
+    document.querySelector('[data-header-sentinel]');
+
+  if (bar && start) {
+    bar.hidden = false;
+    let pastStart = false;
+    const hiders = new Set<Element>();
+    const update = () => bar.toggleAttribute('data-visible', pastStart && hiders.size === 0);
+
+    new IntersectionObserver(([entry]) => {
+      // Past the start marker only once it has left through the top of the viewport.
+      pastStart = !entry!.isIntersecting && entry!.boundingClientRect.top < 0;
+      update();
+    }).observe(start);
+
+    const hideObserver = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) hiders.add(entry.target);
+        else hiders.delete(entry.target);
+      }
+      update();
+    });
+    document
+      .querySelectorAll('[data-enquiry-bar-hide], main form')
+      .forEach((el) => hideObserver.observe(el));
+  }
+</script>

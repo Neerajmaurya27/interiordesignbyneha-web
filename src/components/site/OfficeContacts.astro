@@ -1,0 +1,46 @@
+---
+/**
+ * Contact details per office, verified fields only [V16–V18]. An office with nothing verified
+ * shows just its city and "By appointment".
+ */
+import WhatsAppLink from './WhatsAppLink.astro';
+import { site } from '../../data/site';
+
+interface Props {
+  pageTitle: string;
+  tone?: 'light' | 'espresso';
+}
+
+const { pageTitle, tone = 'light' } = Astro.props;
+const muted = tone === 'espresso' ? 'text-sand' : 'text-taupe';
+const link = 'underline decoration-1 underline-offset-[0.2em] hover:decoration-2';
+---
+
+<ul class="flex flex-col gap-6 tablet:flex-row tablet:gap-12">
+  {site.offices.map((office) => (
+    <li class="flex flex-col gap-1">
+      <span class="font-medium">{office.city}</span>
+      {office.address ? (
+        <address class:list={['not-italic', muted]}>{office.address}</address>
+      ) : (
+        office.byAppointment && <span class={muted}>By appointment</span>
+      )}
+      {office.phone && (
+        <a
+          href={`tel:${office.phone.replace(/[^+\d]/g, '')}`}
+          class={link}
+          data-analytics="phone_click"
+        >
+          {office.phone}
+        </a>
+      )}
+      <WhatsAppLink region={office.region} from={pageTitle} class={link} />
+      {office.email && (
+        <a href={`mailto:${office.email}`} class={link} data-analytics="email_click">
+          {office.email}
+        </a>
+      )}
+      {office.licence && <span class:list={['text-caption', muted]}>{office.licence}</span>}
+    </li>
+  ))}
+</ul>
