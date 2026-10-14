@@ -32,10 +32,11 @@ const layout = {
     ],
     sizes: '(min-width: 64rem) 40vw, (min-width: 37.5rem) 50vw, 100vw',
   },
+  // Three across from tablet up (8 columns do not divide by three, so trios use their own grid).
   trio: {
-    wrap: 'grid-page gap-y-4',
-    items: Array(3).fill('col-span-full tablet:col-span-4 desktop:col-span-4'),
-    sizes: '(min-width: 64rem) 33vw, (min-width: 37.5rem) 50vw, 100vw',
+    wrap: 'mx-auto grid max-w-(--container-cap) gap-4 px-5 tablet:grid-cols-3 tablet:gap-6 tablet:px-8 desktop:px-16 wide:px-24',
+    items: Array(3).fill(''),
+    sizes: '(min-width: 37.5rem) 33vw, 100vw',
   },
   spread: { wrap: '', items: ['w-full'], sizes: '100vw' },
 } as const;

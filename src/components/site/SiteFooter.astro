@@ -16,7 +16,7 @@ interface Props {
 const { pageTitle } = Astro.props;
 const nav = existingOnly(footerNav);
 const year = new Date().getFullYear();
-const link = 'underline decoration-1 underline-offset-[0.2em] hover:decoration-2';
+const link = 'tap underline decoration-1 underline-offset-[0.2em] hover:decoration-2';
 ---
 
 <footer
@@ -54,7 +54,7 @@ const link = 'underline decoration-1 underline-offset-[0.2em] hover:decoration-2
         <h2 id="footer-nav-heading" class="type-label mb-4 font-sans text-sand">
           Explore
         </h2>
-        <ul class="flex flex-col gap-2">
+        <ul class="flex flex-col">
           {nav.map((item) => (
             <li>
               <a href={item.href} class={link}>

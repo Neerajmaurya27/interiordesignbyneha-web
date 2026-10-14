@@ -5,9 +5,14 @@
  */
 import type { HTMLAttributes } from 'astro/types';
 
-type Props = HTMLAttributes<'a'> & { href: string; tone?: 'default' | 'on-espresso' | 'inherit' };
+type Props = HTMLAttributes<'a'> & {
+  href: string;
+  tone?: 'default' | 'on-espresso' | 'inherit';
+  /** Not inside running text: give it a 44px-tall tap target. */
+  standalone?: boolean;
+};
 
-const { tone = 'default', class: className, ...rest } = Astro.props;
+const { tone = 'default', standalone = false, class: className, ...rest } = Astro.props;
 
 const tones = {
   default: 'text-terracotta hover:text-terracotta-deep',
@@ -21,6 +26,7 @@ const tones = {
     'underline decoration-1 underline-offset-[0.2em] hover:decoration-2',
     'transition-[text-decoration-thickness,color] duration-(--dur-micro) ease-(--ease-standard)',
     tones[tone],
+    standalone && 'tap',
     className,
   ]}
   {...rest}

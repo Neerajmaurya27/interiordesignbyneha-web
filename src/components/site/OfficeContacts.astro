@@ -13,7 +13,7 @@ interface Props {
 
 const { pageTitle, tone = 'light' } = Astro.props;
 const muted = tone === 'espresso' ? 'text-sand' : 'text-taupe';
-const link = 'underline decoration-1 underline-offset-[0.2em] hover:decoration-2';
+const link = 'tap underline decoration-1 underline-offset-[0.2em] hover:decoration-2';
 ---
 
 <ul class="flex flex-col gap-6 tablet:flex-row tablet:gap-12">

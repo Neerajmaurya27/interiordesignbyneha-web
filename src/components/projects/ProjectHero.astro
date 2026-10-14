@@ -30,14 +30,26 @@ const { project } = Astro.props;
 
 <style>
   .project-hero {
-    block-size: 70svh;
+    block-size: 70vh;
     overflow: clip;
     background-color: var(--color-stone);
   }
 
   @media (min-width: 64rem) {
     .project-hero {
-      block-size: 80svh;
+      block-size: 80vh;
+    }
+  }
+
+  @supports (height: 1svh) {
+    .project-hero {
+      block-size: 70svh;
+    }
+
+    @media (min-width: 64rem) {
+      .project-hero {
+        block-size: 80svh;
+      }
     }
   }
 

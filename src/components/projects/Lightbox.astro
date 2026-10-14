@@ -60,11 +60,17 @@
 
   .lightbox-image {
     max-inline-size: 100%;
-    max-block-size: calc(100svh - 10rem);
+    max-block-size: calc(100vh - 10rem);
     inline-size: auto;
     object-fit: contain;
     background-color: transparent;
     touch-action: pan-y;
+  }
+
+  @supports (height: 1svh) {
+    .lightbox-image {
+      max-block-size: calc(100svh - 10rem);
+    }
   }
 
   .lightbox-button {

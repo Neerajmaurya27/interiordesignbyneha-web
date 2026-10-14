@@ -19,7 +19,8 @@ export default defineConfig({
   },
   webServer: {
     // --ignore-lock keeps the server in the foreground (Astro backgrounds it when run by an agent).
-    command: 'pnpm exec astro dev --port 4321 --ignore-lock',
+    command:
+      'node scripts/clean-wrangler-redirect.mjs && pnpm exec astro dev --port 4321 --ignore-lock',
     url: 'http://localhost:4321/dev/layout',
     reuseExistingServer: !process.env.CI,
     env: { ASTRO_TELEMETRY_DISABLED: '1', E2E: '1', ENQUIRY_MOCK: 'true' },

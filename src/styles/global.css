@@ -26,7 +26,7 @@
   }
 
   body {
-    min-block-size: 100svh;
+    min-block-size: 100vh;
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     text-rendering: optimizeLegibility;
@@ -63,6 +63,13 @@
   /* Reading measure for running text. Lists used as layout grids are not constrained. */
   p {
     max-inline-size: var(--container-text);
+  }
+
+  /* Small-viewport units where supported (Safari 15.4+); vh otherwise. */
+  @supports (height: 1svh) {
+    body {
+      min-block-size: 100svh;
+    }
   }
 
   img,
@@ -129,6 +136,16 @@
       column-gap: 2rem;
       padding-inline: 6rem;
     }
+  }
+
+  /*
+   * Standalone links (not inside running text) get a 44px-tall target on every device
+   * (WCAG 2.5.8 asks for 24px; the brief aims for 44–48px).
+   */
+  .tap {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2.75rem;
   }
 
   /* Ancestors of sticky elements use clip, never hidden/auto, so sticky keeps working. */

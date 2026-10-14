@@ -45,7 +45,7 @@ const { hero, fallbackHeadline, workAnchor } = Astro.props;
           {hero.support && <p class="max-w-(--container-text) text-paper">{hero.support}</p>}
           {workAnchor && (
             <p>
-              <TextLink href={workAnchor} tone="inherit" class="font-medium">
+              <TextLink standalone href={workAnchor} tone="inherit" class="font-medium">
                 See selected work
               </TextLink>
             </p>
@@ -77,7 +77,9 @@ const { hero, fallbackHeadline, workAnchor } = Astro.props;
       </h1>
       {workAnchor && (
         <p>
-          <TextLink href={workAnchor}>See selected work</TextLink>
+          <TextLink standalone href={workAnchor}>
+            See selected work
+          </TextLink>
         </p>
       )}
     </div>
@@ -87,14 +89,27 @@ const { hero, fallbackHeadline, workAnchor } = Astro.props;
 <style>
   .hero-media {
     position: relative;
-    block-size: 82svh;
+    block-size: 82vh;
     overflow: clip;
     background-color: var(--color-stone);
   }
 
   @media (min-width: 64rem) {
     .hero-media {
-      block-size: 88svh;
+      block-size: 88vh;
+    }
+  }
+
+  /* Small-viewport units where supported, so mobile browser bars never resize the hero. */
+  @supports (height: 1svh) {
+    .hero-media {
+      block-size: 82svh;
+    }
+
+    @media (min-width: 64rem) {
+      .hero-media {
+        block-size: 88svh;
+      }
     }
   }
 

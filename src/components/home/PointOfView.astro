@@ -63,7 +63,9 @@ const links = [
         <ul class="flex flex-wrap gap-x-8 gap-y-3">
           {links.map((l) => (
             <li>
-              <TextLink href={l.href}>{l.label}</TextLink>
+              <TextLink standalone href={l.href}>
+                {l.label}
+              </TextLink>
             </li>
           ))}
         </ul>

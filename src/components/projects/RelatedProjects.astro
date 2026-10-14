@@ -39,7 +39,7 @@ const { related, next } = Astro.props;
     {next && (
       <p class="col-span-full border-t border-hairline pt-8">
         <span class="type-label me-3 text-taupe">Next project</span>
-        <TextLink href={`/projects/${next.slug}`} class="font-display text-h3">
+        <TextLink standalone href={`/projects/${next.slug}`} class="font-display text-h3">
           {next.title}
         </TextLink>
       </p>

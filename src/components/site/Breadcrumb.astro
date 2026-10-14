@@ -21,7 +21,7 @@ const siteUrl = (Astro.site ?? new URL(Astro.url.origin)).href;
         <li class="flex gap-x-2">
           <a
             href={item.href}
-            class="underline decoration-1 underline-offset-[0.2em] hover:decoration-2"
+            class="inline-flex min-h-6 items-center underline decoration-1 underline-offset-[0.2em] hover:decoration-2"
           >
             {item.name}
           </a>

@@ -162,7 +162,13 @@ const anySample = page.isFixture || team.isFixture || press.isFixture || partner
             <li class="flex flex-col gap-1 border-t border-hairline pt-4">
               <span class="font-medium">
                 {item.url ? (
-                  <TextLink href={item.url} tone="inherit" rel="noopener" target="_blank">
+                  <TextLink
+                    standalone
+                    href={item.url}
+                    tone="inherit"
+                    rel="noopener"
+                    target="_blank"
+                  >
                     {item.publication}
                   </TextLink>
                 ) : (

@@ -85,6 +85,16 @@ The full plan, including the register of facts still to be verified, is in
 - `pnpm build && pnpm preview` runs the production build in the Workers runtime (put secrets in
   `.dev.vars`).
 
+## Responsive and motion
+
+- `tests/e2e/responsive.spec.ts` checks every page at 360, 390, 768, 1024, 1440 and 1920px: no
+  horizontal scroll or overflowing elements, tap targets of at least 24px on phones (standalone
+  links use the 44px `.tap` class), unique view-transition names, sticky elements on desktop only.
+- `tests/e2e/motion.spec.ts` checks the card → case-study view transition runs, and that reduced
+  motion removes it and every transform.
+- Heights use `svh` inside `@supports`, with `vh` for older Safari.
+- Real-device checks that cannot be automated: [docs/device-testing.md](docs/device-testing.md).
+
 ## Content rules
 
 The portfolio contains real photographs of completed projects only. Any studio fact that is not yet

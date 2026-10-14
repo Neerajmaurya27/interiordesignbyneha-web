@@ -48,6 +48,11 @@
     navigation: auto;
   }
 
+  /* Purpose: continuity — the header stays in place while the page beneath it changes. */
+  [data-site-header] {
+    view-transition-name: site-header;
+  }
+
   ::view-transition-group(*) {
     animation-duration: var(--dur-page);
     animation-timing-function: var(--ease-standard);
