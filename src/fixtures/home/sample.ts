@@ -108,3 +108,15 @@ export const sampleCredibility = {
     attribution: 'Owner, villa, Palm Jumeirah [VERIFY]',
   },
 };
+
+/** Sample services and partners for /approach and /studio layouts only. */
+export const sampleServicesByCity = {
+  mumbai: ['design-execution', 'design-only'],
+  dubai: ['design-only'],
+} as const;
+
+export const sampleCraftPartners = [
+  { name: 'Workshop name [VERIFY]', craft: 'Joinery [VERIFY]', city: 'Mumbai' },
+  { name: 'Workshop name [VERIFY]', craft: 'Stone [VERIFY]', city: 'Mumbai' },
+  { name: 'Workshop name [VERIFY]', craft: 'Upholstery [VERIFY]', city: 'Dubai' },
+];

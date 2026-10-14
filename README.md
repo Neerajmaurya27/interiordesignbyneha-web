@@ -65,6 +65,14 @@ The full plan, including the register of facts still to be verified, is in
   before/after, testimonial, craft, execution — only when the project has them.
 - `src/fixtures/projects/fixture-a` exercises every block; `fixture-b` is minimal.
 
+## Approach and Studio
+
+- `/approach` and `/studio` are generated (and linked) only once `src/content/pages/approach.md`
+  or `studio.md` exists with `published: true`.
+- Sections render only with confirmed content: services per city (`servicesByCity` in
+  `src/data/site.ts`), process (`src/data/home.ts`), FAQ (`src/content/faq`), team with consent
+  (`src/content/team`), craft partners (`craftPartners` in `site.ts`) and verified press.
+
 ## Content rules
 
 The portfolio contains real photographs of completed projects only. Any studio fact that is not yet

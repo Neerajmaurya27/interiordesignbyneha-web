@@ -59,10 +59,12 @@ const pageName = 'Home';
   {featured.length > 0 && <SelectedWork projects={featured} handOff={home.selectedWorkHandOff} />}
   {home.details.length > 0 && <DesignInDetail details={home.details} />}
   {home.pointOfView && <PointOfView pointOfView={home.pointOfView} />}
-  {home.process && home.process.steps.length > 0 && <ProcessSteps process={home.process} />}
+  {home.process && home.process.steps.length > 0 && (
+    <ProcessSteps process={home.process} chapter={5} />
+  )}
   {(press.length > 0 || testimonial) && <Credibility {press} {testimonial} />}
   {(showCta || hasWhatsApp) && (
-    <EnquiryBand enquiry={home.enquiry} {showCta} pageTitle={pageName} />
+    <EnquiryBand enquiry={home.enquiry} {showCta} pageTitle={pageName} chapter={7} />
   )}
   {usesSample && <DevPreviewNotice />}
 </BaseLayout>

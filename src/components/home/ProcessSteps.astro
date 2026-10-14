@@ -12,21 +12,25 @@ import { routeExists } from '../../lib/routes';
 
 interface Props {
   process: NonNullable<HomeContent['process']>;
+  /** Home-page chapter number; omitted when reused on /approach. */
+  chapter?: number | undefined;
+  /** Link to /approach (off on /approach itself). */
+  linkToApproach?: boolean;
 }
 
-const { process } = Astro.props;
-const showApproach = routeExists('/approach');
+const { process, chapter, linkToApproach = true } = Astro.props;
+const showApproach = linkToApproach && routeExists('/approach');
 ---
 
 <section
   aria-labelledby="process-heading"
   class="bg-linen py-(--spacing-section)"
-  data-chapter="05"
+  data-chapter={chapter ? String(chapter).padStart(2, '0') : undefined}
 >
   <div class="grid-page gap-y-12">
     <div class="col-span-full flex flex-col gap-6 desktop:col-span-6">
       <h2 id="process-heading">
-        <ChapterLabel number={5} as="span">
+        <ChapterLabel number={chapter} as="span">
           Process and delivery
         </ChapterLabel>
       </h2>

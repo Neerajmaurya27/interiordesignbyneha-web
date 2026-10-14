@@ -82,6 +82,27 @@ export const site: SiteSettings = {
   locale: 'en_GB',
 };
 
+/** Services the enquiry form and /approach can offer (brief §12). */
+export const SERVICES = {
+  'design-execution': 'Full design and execution',
+  'design-only': 'Design only',
+} as const;
+export type ServiceId = keyof typeof SERVICES;
+
+/**
+ * Services actually offered in each city [V3, V4]. Must match the studio's real model and
+ * licences (in Dubai, design consultancy and fit-out contracting are separately licensed).
+ * Empty until confirmed: /approach then omits the services table and the enquiry form offers only
+ * "Not sure yet".
+ */
+export const servicesByCity: Record<Region, ServiceId[]> = {
+  mumbai: [], // [V4]
+  dubai: [], // [V4]
+};
+
+/** Workshops and makers named on /studio, each with consent [V24]. */
+export const craftPartners: { name: string; craft: string; city: string }[] = [];
+
 export interface NavItem {
   label: string;
   href: string;

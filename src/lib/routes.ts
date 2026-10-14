@@ -31,10 +31,25 @@ export function countPublished(sources: string[]): number {
   }).length;
 }
 
+const pageSources = import.meta.glob<string>('/src/content/pages/*.md', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
+/** True when a page file's frontmatter says `published: true`. */
+export function isPublishedPage(raw: string | undefined): boolean {
+  const match = raw?.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!match) return false;
+  return (parse(match[1]!) as { published?: unknown } | null)?.published === true;
+}
+
 const hasPublishedProjects = countPublished(Object.values(projectSources)) > 0;
 const contentGates: Record<string, boolean> = {
   '/projects': hasPublishedProjects,
   '/projects/[slug]': hasPublishedProjects,
+  '/approach': isPublishedPage(pageSources['/src/content/pages/approach.md']),
+  '/studio': isPublishedPage(pageSources['/src/content/pages/studio.md']),
 };
 
 /** Converts src/pages file paths to route paths. Dynamic segments become "[param]". */

@@ -1,0 +1,98 @@
+---
+/**
+ * /approach (brief §5): philosophy in long form, the services actually offered in each city, the
+ * five-step process and the FAQ. Generated only once src/content/pages/approach.md is published
+ * (or in `astro dev`, from fixtures); each section renders only when its content exists.
+ */
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ChapterLabel from '../../components/ui/ChapterLabel.astro';
+import DevBadge from '../../components/ui/DevBadge.astro';
+import DevPreviewNotice from '../../components/ui/DevPreviewNotice.astro';
+import ServicesByCity from '../../components/pages/ServicesByCity.astro';
+import FaqList from '../../components/pages/FaqList.astro';
+import ProcessSteps from '../../components/home/ProcessSteps.astro';
+import EnquiryBand from '../../components/home/EnquiryBand.astro';
+import TextLink from '../../components/ui/TextLink.astro';
+import { enquiryCta, servicesByCity, site, type Region, type ServiceId } from '../../data/site';
+import { loadHome } from '../../data/home';
+import { getFaq, getPage } from '../../lib/pages';
+import { routeExists } from '../../lib/routes';
+
+export async function getStaticPaths() {
+  return (await getPage('approach')) ? [{ params: { index: undefined } }] : [];
+}
+
+const page = (await getPage('approach'))!;
+const { Content } = await render(page.value);
+const { title, description, intro } = page.value.data;
+const faq = await getFaq();
+const { content: home, usesSample } = await loadHome();
+
+let services: Record<Region, ServiceId[]> = servicesByCity;
+let servicesSample = false;
+if (import.meta.env.DEV && Object.values(services).every((list) => list.length === 0)) {
+  const { sampleServicesByCity } = await import('../../fixtures/home/sample');
+  services = { mumbai: [...sampleServicesByCity.mumbai], dubai: [...sampleServicesByCity.dubai] };
+  servicesSample = true;
+}
+const hasServices = Object.values(services).some((list) => list.length > 0);
+const showCta = routeExists(enquiryCta.href);
+const hasWhatsApp = site.offices.some((o) => o.whatsapp);
+const anySample = page.isFixture || faq.isFixture || servicesSample || usesSample;
+---
+
+<BaseLayout title={`${title} | ${site.name}`} {description} pageName={title}>
+  <div class="grid-page gap-y-10 pt-16 pb-(--spacing-section) desktop:pt-24">
+    <header class="col-span-full flex flex-col gap-6 desktop:col-span-8">
+      <h1>
+        {title}
+        {page.isFixture && <DevBadge />}
+      </h1>
+      {intro && <p class="type-statement">{intro}</p>}
+    </header>
+    <div class="prose col-span-full desktop:col-span-7">
+      <Content />
+    </div>
+  </div>
+
+  {hasServices && (
+    <section aria-labelledby="services-heading" class="bg-paper py-(--spacing-section)">
+      <div class="grid-page gap-y-8">
+        <h2 id="services-heading" class="col-span-full">
+          <ChapterLabel as="span">Services by city</ChapterLabel>
+          {servicesSample && <DevBadge />}
+        </h2>
+        <div class="col-span-full desktop:col-span-8">
+          <ServicesByCity {services} caption="Services offered in each city" />
+        </div>
+      </div>
+    </section>
+  )}
+
+  {home.process && home.process.steps.length > 0 && (
+    <ProcessSteps process={home.process} linkToApproach={false} />
+  )}
+
+  {faq.value.length > 0 && (
+    <section aria-labelledby="faq-heading" class="py-(--spacing-section)">
+      <div class="grid-page gap-y-8">
+        <h2 id="faq-heading" class="col-span-full">
+          <ChapterLabel as="span">Questions</ChapterLabel>
+          {faq.isFixture && <DevBadge />}
+        </h2>
+        <div class="col-span-full desktop:col-span-8">
+          <FaqList items={faq.value} />
+        </div>
+        {routeExists('/studio') && (
+          <p class="col-span-full">
+            <TextLink href="/studio">About the studio</TextLink>
+          </p>
+        )}
+      </div>
+    </section>
+  )}
+
+  {(showCta || hasWhatsApp) && <EnquiryBand enquiry={home.enquiry} {showCta} pageTitle={title} />}
+  {anySample && <DevPreviewNotice />}
+</BaseLayout>

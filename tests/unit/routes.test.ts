@@ -82,3 +82,14 @@ describe('content-gated routes', () => {
     ).toBe(1);
   });
 });
+
+import { isPublishedPage } from '../../src/lib/routes';
+
+describe('isPublishedPage', () => {
+  it('requires published: true in the frontmatter', () => {
+    expect(isPublishedPage('---\ntitle: Approach\npublished: true\n---\nBody')).toBe(true);
+    expect(isPublishedPage('---\ntitle: Approach\npublished: false\n---\nBody')).toBe(false);
+    expect(isPublishedPage('---\ntitle: Approach\n---\nBody')).toBe(false);
+    expect(isPublishedPage(undefined)).toBe(false);
+  });
+});

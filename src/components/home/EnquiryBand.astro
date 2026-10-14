@@ -15,9 +15,11 @@ interface Props {
   enquiry: HomeContent['enquiry'];
   showCta: boolean;
   pageTitle: string;
+  /** Home-page chapter number; omitted when the band closes another page. */
+  chapter?: number | undefined;
 }
 
-const { enquiry, showCta, pageTitle } = Astro.props;
+const { enquiry, showCta, pageTitle, chapter } = Astro.props;
 const whatsappOffices = site.offices.filter((o) => o.whatsapp);
 const link =
   'text-sand underline decoration-1 underline-offset-[0.2em] hover:decoration-2 hover:text-paper';
@@ -26,12 +28,12 @@ const link =
 <section
   aria-labelledby="enquiry-heading"
   class="on-espresso bg-espresso py-(--spacing-section) text-limewash"
-  data-chapter="07"
+  data-chapter={chapter ? String(chapter).padStart(2, '0') : undefined}
   data-enquiry-bar-hide
 >
   <div class="grid-page gap-y-10">
     <div class="col-span-full flex flex-col gap-6 desktop:col-span-8">
-      <ChapterLabel number={7} tone="on-espresso">
+      <ChapterLabel number={chapter} tone="on-espresso">
         Begin a conversation
       </ChapterLabel>
       <h2 id="enquiry-heading">{enquiry.heading}</h2>

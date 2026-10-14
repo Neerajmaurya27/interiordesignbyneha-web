@@ -195,4 +195,88 @@ const testimonials = defineCollection({
   }),
 });
 
-export const collections = { projects, projectFixtures, press, testimonials };
+/** Long-form page copy (approach, studio). Published only when the studio has signed it off. */
+const pageSchema = z.object({
+  title: z.string(),
+  /** Meta description; facts only. */
+  description: z.string(),
+  /** Opening statement under the title. */
+  intro: z.string().optional(),
+  published: z.boolean().default(false),
+});
+
+const pages = defineCollection({
+  loader: glob({ pattern: ['*.md', '!README.md'], base: './src/content/pages' }),
+  schema: pageSchema,
+});
+
+const pageFixtures = defineCollection({
+  loader: glob({
+    pattern: ['*.md', '!README.md'],
+    base: import.meta.env.DEV ? './src/fixtures/pages' : './src/fixtures/production-empty',
+  }),
+  schema: pageSchema,
+});
+
+/** FAQ on /approach: fees approach, timelines, working between cities, Vastu, what we don't do. */
+const faqSchema = z.object({
+  question: z.string(),
+  answer: z.string(),
+  order: z.number().int(),
+  published: z.boolean().default(false),
+});
+
+const faq = defineCollection({
+  loader: glob({ pattern: '*.yaml', base: './src/content/faq' }),
+  schema: faqSchema,
+});
+
+const faqFixtures = defineCollection({
+  loader: glob({
+    pattern: '*.yaml',
+    base: import.meta.env.DEV ? './src/fixtures/faq' : './src/fixtures/production-empty',
+  }),
+  schema: faqSchema,
+});
+
+/** People on /studio, with their consent to be shown [V21]. */
+const teamSchema = ({ image }: SchemaContext) =>
+  z.object({
+    name: z.string(),
+    role: z.string(),
+    /** One credential line, e.g. training and founding year [V1]. */
+    credential: z.string().optional(),
+    portrait: image().optional(),
+    portraitAlt: z.string().optional(),
+    founder: z.boolean().default(false),
+    order: z.number().int(),
+    /** Written consent to appear on the site. */
+    consent: z.boolean(),
+    published: z.boolean().default(false),
+  });
+
+const team = defineCollection({
+  loader: glob({ pattern: ['*.md', '!README.md'], base: './src/content/team' }),
+  schema: teamSchema,
+});
+
+const teamFixtures = defineCollection({
+  loader: glob({
+    pattern: ['*.md', '!README.md'],
+    base: import.meta.env.DEV ? './src/fixtures/team' : './src/fixtures/production-empty',
+  }),
+  schema: teamSchema,
+});
+
+export const collections = {
+  projects,
+  projectFixtures,
+  press,
+  testimonials,
+  pages,
+  pageFixtures,
+  faq,
+  faqFixtures,
+  team,
+  teamFixtures,
+};

@@ -157,4 +157,60 @@
     font-size: var(--text-display);
     line-height: var(--text-display--line-height);
   }
+
+  /* Long-form Markdown (approach, studio). Only token values; calm vertical rhythm. */
+  .prose {
+    max-inline-size: var(--container-text);
+  }
+
+  .prose > * + * {
+    margin-block-start: 1.25em;
+  }
+
+  .prose h2 {
+    margin-block-start: 2.5em;
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+  }
+
+  .prose h3 {
+    margin-block-start: 2em;
+  }
+
+  .prose ul,
+  .prose ol {
+    padding-inline-start: 1.25em;
+  }
+
+  .prose ul {
+    list-style: disc;
+  }
+
+  .prose ol {
+    list-style: decimal;
+  }
+
+  .prose li + li {
+    margin-block-start: 0.5em;
+  }
+
+  .prose a {
+    color: var(--color-terracotta);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .prose a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .prose blockquote {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: var(--text-statement);
+    line-height: var(--text-statement--line-height);
+    padding-inline-start: 1.5rem;
+    border-inline-start: 1px solid var(--color-hairline);
+  }
 }

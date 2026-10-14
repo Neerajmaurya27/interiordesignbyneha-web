@@ -1,0 +1,187 @@
+---
+/**
+ * /studio (brief §5): Neha, the team, studio addresses (only real ones), craft partners, and press
+ * and recognition. Generated only once src/content/pages/studio.md is published (or in
+ * `astro dev`, from fixtures). People appear only with consent; press only when verified.
+ */
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ChapterLabel from '../../components/ui/ChapterLabel.astro';
+import DevBadge from '../../components/ui/DevBadge.astro';
+import DevPreviewNotice from '../../components/ui/DevPreviewNotice.astro';
+import Picture from '../../components/ui/Picture.astro';
+import OfficeContacts from '../../components/site/OfficeContacts.astro';
+import EnquiryBand from '../../components/home/EnquiryBand.astro';
+import TextLink from '../../components/ui/TextLink.astro';
+import { craftPartners as realPartners, enquiryCta, site } from '../../data/site';
+import { loadHome } from '../../data/home';
+import { getPage, getPress, getTeam } from '../../lib/pages';
+import { routeExists } from '../../lib/routes';
+
+export async function getStaticPaths() {
+  return (await getPage('studio')) ? [{ params: { index: undefined } }] : [];
+}
+
+const page = (await getPage('studio'))!;
+const { Content } = await render(page.value);
+const { title, description, intro } = page.value.data;
+const team = await getTeam();
+const people = await Promise.all(
+  team.value.map(async (entry) => ({ ...entry.data, Bio: (await render(entry)).Content })),
+);
+const founder = people.find((p) => p.founder);
+const members = people.filter((p) => !p.founder);
+const press = await getPress();
+const { content: home } = await loadHome();
+
+let partners = realPartners;
+let partnersSample = false;
+if (import.meta.env.DEV && partners.length === 0) {
+  partners = (await import('../../fixtures/home/sample')).sampleCraftPartners;
+  partnersSample = true;
+}
+
+const showCta = routeExists(enquiryCta.href);
+const hasWhatsApp = site.offices.some((o) => o.whatsapp);
+const anySample = page.isFixture || team.isFixture || press.isFixture || partnersSample;
+---
+
+<BaseLayout title={`${title} | ${site.name}`} {description} pageName={title}>
+  <div class="grid-page gap-y-10 pt-16 pb-(--spacing-section) desktop:pt-24">
+    <header class="col-span-full flex flex-col gap-6 desktop:col-span-8">
+      <h1>
+        {title}
+        {page.isFixture && <DevBadge />}
+      </h1>
+      {intro && <p class="type-statement">{intro}</p>}
+    </header>
+    <div class="prose col-span-full desktop:col-span-7">
+      <Content />
+    </div>
+  </div>
+
+  {founder && (
+    <section aria-labelledby="founder-heading" class="bg-linen py-(--spacing-section)">
+      <div class="grid-page items-start gap-y-10">
+        {founder.portrait && (
+          <div class="col-span-full tablet:col-span-4 desktop:col-span-5" data-reveal>
+            <Picture
+              src={founder.portrait}
+              alt={founder.portraitAlt ?? founder.name}
+              sizes="(min-width: 64rem) 36vw, (min-width: 37.5rem) 50vw, 100vw"
+              imgClass="w-full aspect-[4/5] object-cover"
+            />
+          </div>
+        )}
+        <div class="col-span-full flex flex-col gap-4 tablet:col-span-4 desktop:col-span-6 desktop:col-start-7">
+          <ChapterLabel>Founder</ChapterLabel>
+          <h2 id="founder-heading">
+            {founder.name}
+            {team.isFixture && <DevBadge />}
+          </h2>
+          <p class="text-taupe">{founder.role}</p>
+          {founder.credential && <p class="text-caption text-taupe">{founder.credential}</p>}
+          <div class="prose pt-2">
+            <founder.Bio />
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  {members.length > 0 && (
+    <section aria-labelledby="team-heading" class="py-(--spacing-section)">
+      <div class="grid-page gap-y-10">
+        <h2 id="team-heading" class="col-span-full">
+          <ChapterLabel as="span">Team</ChapterLabel>
+        </h2>
+        <ul class="col-span-full grid grid-cols-2 gap-x-4 gap-y-12 tablet:grid-cols-3 desktop:grid-cols-4 desktop:gap-x-6">
+          {members.map((person) => (
+            <li class="flex flex-col gap-2" data-reveal>
+              {person.portrait && (
+                <Picture
+                  src={person.portrait}
+                  alt={person.portraitAlt ?? person.name}
+                  sizes="(min-width: 64rem) 22vw, (min-width: 37.5rem) 33vw, 50vw"
+                  imgClass="w-full aspect-[4/5] object-cover"
+                />
+              )}
+              <h3 class="pt-2">{person.name}</h3>
+              <p class="text-caption text-taupe">{person.role}</p>
+              <div class="text-caption">
+                <person.Bio />
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <section aria-labelledby="studios-heading" class="bg-paper py-(--spacing-section)">
+    <div class="grid-page gap-y-8">
+      <h2 id="studios-heading" class="col-span-full">
+        <ChapterLabel as="span">Where we work</ChapterLabel>
+      </h2>
+      <div class="col-span-full">
+        <OfficeContacts pageTitle={title} />
+      </div>
+    </div>
+  </section>
+
+  {partners.length > 0 && (
+    <section aria-labelledby="partners-heading" class="py-(--spacing-section)">
+      <div class="grid-page gap-y-8">
+        <h2 id="partners-heading" class="col-span-full">
+          <ChapterLabel as="span">Craft partners</ChapterLabel>
+          {partnersSample && <DevBadge />}
+        </h2>
+        <ul class="col-span-full grid gap-6 tablet:grid-cols-3">
+          {partners.map((p) => (
+            <li class="flex flex-col gap-1 border-t border-hairline pt-4">
+              <span class="font-medium">{p.name}</span>
+              <span class="text-caption text-taupe">
+                {p.craft} · {p.city}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  {press.value.length > 0 && (
+    <section aria-labelledby="press-heading" class="py-(--spacing-section)">
+      <div class="grid-page gap-y-8">
+        <h2 id="press-heading" class="col-span-full">
+          <ChapterLabel as="span">Press and recognition</ChapterLabel>
+          {press.isFixture && <DevBadge />}
+        </h2>
+        <ul class="col-span-full grid gap-6 tablet:grid-cols-3">
+          {press.value.map((item) => (
+            <li class="flex flex-col gap-1 border-t border-hairline pt-4">
+              <span class="font-medium">
+                {item.url ? (
+                  <TextLink href={item.url} tone="inherit" rel="noopener" target="_blank">
+                    {item.publication}
+                  </TextLink>
+                ) : (
+                  item.publication
+                )}
+              </span>
+              <span>{item.title}</span>
+              <span class="text-caption text-taupe">{item.year}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  {(showCta || hasWhatsApp) && <EnquiryBand enquiry={home.enquiry} {showCta} pageTitle={title} />}
+  {anySample && <DevPreviewNotice />}
+</BaseLayout>
+
+<script>
+  import '../../scripts/reveal';
+</script>

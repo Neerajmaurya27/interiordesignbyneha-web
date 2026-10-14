@@ -1,0 +1,56 @@
+---
+/**
+ * Services actually offered per city [V3, V4] as an accessible table. Renders only when at least
+ * one city has confirmed services; a "—" means not offered in that city.
+ */
+import { SERVICES, type Region, type ServiceId } from '../../data/site';
+
+interface Props {
+  services: Record<Region, ServiceId[]>;
+  caption: string;
+}
+
+const { services, caption } = Astro.props;
+const cities = (Object.keys(services) as Region[]).filter((c) => services[c].length > 0);
+const rows = (Object.keys(SERVICES) as ServiceId[]).filter((id) =>
+  cities.some((c) => services[c].includes(id)),
+);
+const cityLabel: Record<Region, string> = { mumbai: 'Mumbai', dubai: 'Dubai' };
+---
+
+<table class="w-full border-collapse text-start">
+  <caption class="sr-only">{caption}</caption>
+  <thead>
+    <tr class="border-b border-espresso">
+      <th scope="col" class="py-3 pe-4 text-start type-label font-medium text-taupe">
+        Service
+      </th>
+      {cities.map((city) => (
+        <th scope="col" class="py-3 pe-4 text-start type-label font-medium text-taupe">
+          {cityLabel[city]}
+        </th>
+      ))}
+    </tr>
+  </thead>
+  <tbody>
+    {rows.map((id) => (
+      <tr class="border-b border-hairline">
+        <th scope="row" class="py-4 pe-4 text-start font-normal">
+          {SERVICES[id]}
+        </th>
+        {cities.map((city) => (
+          <td class="py-4 pe-4">
+            {services[city].includes(id) ? (
+              'Offered'
+            ) : (
+              <>
+                <span aria-hidden="true">—</span>
+                <span class="sr-only">Not offered</span>
+              </>
+            )}
+          </td>
+        ))}
+      </tr>
+    ))}
+  </tbody>
+</table>

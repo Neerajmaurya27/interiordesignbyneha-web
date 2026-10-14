@@ -1,0 +1,43 @@
+---
+/** FAQ as native <details> disclosures: keyboard operable, no script, nothing hidden from search. */
+interface Props {
+  items: { question: string; answer: string }[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="border-t border-hairline">
+  {items.map((item) => (
+    <details class="faq border-b border-hairline">
+      <summary class="flex min-h-14 cursor-pointer items-center justify-between gap-6 py-4 font-medium">
+        <h3 class="text-body font-medium">{item.question}</h3>
+        <span class="faq-icon text-h3 leading-none text-taupe" aria-hidden="true">
+          +
+        </span>
+      </summary>
+      <p class="pb-6">{item.answer}</p>
+    </details>
+  ))}
+</div>
+
+<style>
+  .faq summary {
+    list-style: none;
+  }
+
+  .faq summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq[open] .faq-icon {
+    transform: rotate(45deg);
+  }
+
+  /* Purpose: orientation — the marker turns as the answer opens. */
+  @media (prefers-reduced-motion: no-preference) {
+    .faq-icon {
+      transition: transform var(--dur-ui) var(--ease-standard);
+    }
+  }
+</style>
