@@ -1,0 +1,130 @@
+---
+/**
+ * Chapter 03 — Design in detail (brief §7). Stone band.
+ * Desktop with JS: a sticky caption column (cols 1–4) names the close-up in the middle of the
+ * viewport (cols 6–12), cross-fading over --dur-ui. Each figure keeps its own <figcaption> in
+ * DOM order; on desktop it is visually hidden and the sticky column (aria-hidden) shows it.
+ * Mobile, or without JS: image then caption, repeated; nothing sticky.
+ * No ancestor uses overflow hidden/auto, so position: sticky keeps working.
+ */
+import Picture from '../ui/Picture.astro';
+import ChapterLabel from '../ui/ChapterLabel.astro';
+import TextLink from '../ui/TextLink.astro';
+import type { HomeContent } from '../../data/home';
+import { routeExists } from '../../lib/routes';
+
+interface Props {
+  details: HomeContent['details'];
+}
+
+const { details } = Astro.props;
+const showApproach = routeExists('/approach');
+---
+
+<section
+  aria-labelledby="detail-heading"
+  class="bg-stone py-(--spacing-section)"
+  data-chapter="03"
+  data-sticky-caption-sequence
+>
+  <div class="grid-page gap-y-12">
+    <div class="col-span-full flex flex-col gap-6 desktop:col-span-4">
+      <div class="detail-intro flex flex-col gap-6">
+        <h2 id="detail-heading">
+          <ChapterLabel number={3} as="span">
+            Design in detail
+          </ChapterLabel>
+        </h2>
+        <p class="sticky-caption type-statement" data-sticky-caption aria-hidden="true">
+          {details[0]?.caption}
+        </p>
+        {showApproach && (
+          <p>
+            <TextLink href="/approach">How we work</TextLink>
+          </p>
+        )}
+      </div>
+    </div>
+
+    <ol class="detail-grid col-span-full grid grid-cols-2 gap-x-4 gap-y-8 tablet:gap-x-6 desktop:col-span-7 desktop:col-start-6 desktop:gap-y-16">
+      {details.map((detail, i) => (
+        <li>
+          <figure class="flex flex-col gap-4" data-caption-item data-caption={detail.caption}>
+            <div data-reveal style={`--reveal-index: ${Math.min(i, 2)}`}>
+              <Picture
+                src={detail.src}
+                alt={detail.alt}
+                focal={detail.focal}
+                sizes="(min-width: 64rem) 55vw, 100vw"
+                imgClass="w-full"
+              />
+            </div>
+            <figcaption class="detail-caption text-caption text-taupe">{detail.caption}</figcaption>
+          </figure>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  /* Staggered contact-sheet rhythm: the second column sits lower. */
+  .detail-grid > li:nth-child(even) {
+    margin-block-start: 3rem;
+  }
+
+  @media (min-width: 64rem) {
+    .detail-grid > li:nth-child(even) {
+      margin-block-start: 8rem;
+    }
+  }
+
+  .sticky-caption {
+    display: none;
+    min-block-size: 3lh;
+    transition: opacity var(--dur-ui) var(--ease-standard);
+  }
+
+  @media (min-width: 64rem) {
+    /* With JS on desktop: the sticky column shows captions; per-figure captions stay for AT. */
+    :global(html.js) .sticky-caption {
+      display: block;
+    }
+
+    :global(html.js) .detail-caption {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .detail-intro {
+      position: sticky;
+      inset-block-start: calc(var(--header-height) + 3rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Staggered contact-sheet rhythm: the second column sits lower. */
+    .detail-grid > li:nth-child(even) {
+      margin-block-start: 3rem;
+    }
+
+    @media (min-width: 64rem) {
+      .detail-grid > li:nth-child(even) {
+        margin-block-start: 8rem;
+      }
+    }
+
+    .sticky-caption {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import '../../scripts/reveal';
+  import '../../scripts/sticky-caption';
+</script>

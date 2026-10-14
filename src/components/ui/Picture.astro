@@ -13,17 +13,17 @@ interface Props {
   /** Landscape/desktop crop (also used on mobile when no mobile crop is given). */
   src: ImageMetadata;
   /** Hand-cropped portrait for viewports below the tablet breakpoint. */
-  mobileSrc?: ImageMetadata;
+  mobileSrc?: ImageMetadata | undefined;
   alt: string;
   /** e.g. "100vw" (full-bleed) or "(min-width: 64rem) 50vw, 100vw" (pairs). */
   sizes: string;
   /** Use "full-bleed" for edge-to-edge images, "grid" for in-grid images. */
   widthSet?: 'full-bleed' | 'grid';
-  priority?: boolean;
+  priority?: boolean | undefined;
   /** Focal point as "x% y%", applied as object-position. */
-  focal?: string;
-  class?: string;
-  imgClass?: string;
+  focal?: string | undefined;
+  class?: string | undefined;
+  imgClass?: string | undefined;
 }
 
 const {

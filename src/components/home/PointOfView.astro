@@ -1,0 +1,77 @@
+---
+/**
+ * Chapter 04 — Neha's point of view (brief §7). Portrait 4:5 (cols 1–5), first-person statement
+ * (cols 7–12), signature and one credential line. Only rendered with Neha's own verified words.
+ */
+import Picture from '../ui/Picture.astro';
+import ChapterLabel from '../ui/ChapterLabel.astro';
+import TextLink from '../ui/TextLink.astro';
+import type { HomeContent } from '../../data/home';
+import { routeExists } from '../../lib/routes';
+
+interface Props {
+  pointOfView: NonNullable<HomeContent['pointOfView']>;
+}
+
+const { pointOfView } = Astro.props;
+const links = [
+  { href: '/approach', label: 'Read about our approach' },
+  { href: '/studio', label: 'About the studio' },
+].filter((l) => routeExists(l.href));
+---
+
+<section aria-labelledby="pov-heading" class="py-(--spacing-section)" data-chapter="04">
+  <div class="grid-page items-center gap-y-12">
+    {pointOfView.portrait && (
+      <div class="col-span-full tablet:col-span-4 desktop:col-span-5" data-reveal>
+        <Picture
+          src={pointOfView.portrait.src}
+          alt={pointOfView.portrait.alt}
+          focal={pointOfView.portrait.focal}
+          sizes="(min-width: 64rem) 36vw, (min-width: 37.5rem) 50vw, 100vw"
+          imgClass="w-full aspect-[4/5] object-cover"
+        />
+      </div>
+    )}
+    <div
+      class:list={[
+        'col-span-full flex flex-col gap-8',
+        pointOfView.portrait
+          ? 'tablet:col-span-4 desktop:col-span-6 desktop:col-start-7'
+          : 'desktop:col-span-8 desktop:col-start-3',
+      ]}
+      data-reveal="text"
+      style="--reveal-index: 1"
+    >
+      <h2 id="pov-heading">
+        <ChapterLabel number={4} as="span">
+          Point of view
+        </ChapterLabel>
+      </h2>
+      <figure class="flex flex-col gap-6">
+        <blockquote class="type-statement">
+          <p>{pointOfView.statement}</p>
+        </blockquote>
+        <figcaption class="flex flex-col gap-1">
+          <span class="font-display text-h3">{pointOfView.signature}</span>
+          {pointOfView.credential && (
+            <span class="text-caption text-taupe">{pointOfView.credential}</span>
+          )}
+        </figcaption>
+      </figure>
+      {links.length > 0 && (
+        <ul class="flex flex-wrap gap-x-8 gap-y-3">
+          {links.map((l) => (
+            <li>
+              <TextLink href={l.href}>{l.label}</TextLink>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
+</section>
+
+<script>
+  import '../../scripts/reveal';
+</script>

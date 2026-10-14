@@ -12,17 +12,18 @@ The full plan, including the register of facts still to be verified, is in
 
 ## Commands
 
-| Command             | What it does                                                 |
-| ------------------- | ------------------------------------------------------------ |
-| `pnpm dev`          | Dev server at http://localhost:4321; tokens at `/dev/tokens` |
-| `pnpm build`        | Production build to `dist/`, then the placeholder guard      |
-| `pnpm preview`      | Serve the production build                                   |
-| `pnpm check`        | Astro + TypeScript type check                                |
-| `pnpm lint`         | ESLint (TypeScript, Astro, jsx-a11y strict)                  |
-| `pnpm format:check` | Prettier                                                     |
-| `pnpm test`         | Unit tests (Vitest), including token contrast checks         |
-| `pnpm test:e2e`     | Playwright end-to-end tests (starts the dev server)          |
-| `pnpm verify`       | Everything above, as CI runs it                              |
+| Command             | What it does                                                                |
+| ------------------- | --------------------------------------------------------------------------- |
+| `pnpm dev`          | Dev server at http://localhost:4321; tokens at `/dev/tokens`                |
+| `pnpm build`        | Production build to `dist/`, then the placeholder guard                     |
+| `pnpm preview`      | Serve the production build                                                  |
+| `pnpm check`        | Astro + TypeScript type check                                               |
+| `pnpm lint`         | ESLint (TypeScript, Astro, jsx-a11y strict)                                 |
+| `pnpm format:check` | Prettier                                                                    |
+| `pnpm test`         | Unit tests (Vitest), including token contrast checks                        |
+| `pnpm test:e2e`     | Playwright end-to-end tests (starts the dev server)                         |
+| `pnpm launch:check` | After a build: fails until the home page has a real hero and published work |
+| `pnpm verify`       | Everything above, as CI runs it                                             |
 
 ## Design system
 
@@ -46,6 +47,14 @@ The full plan, including the register of facts still to be verified, is in
 - `src/data/site.ts` holds studio facts. Unverified values are `null` and the UI omits them.
 - `src/lib/routes.ts` makes navigation link only to pages that exist in production builds. In
   `pnpm dev` every link shows, so the full navigation can be reviewed early.
+
+## Home page and content
+
+- `src/pages/index.astro` renders the seven chapters in order; each renders only when its content
+  exists. Copy lives in `src/data/home.ts` (verified only); projects in `src/content/projects/`.
+- In `pnpm dev`, empty chapters are filled from `src/fixtures/` (labelled flat-colour images and the
+  brief's sample copy, marked `[VERIFY]`) and a "Dev preview" tag is shown. Production builds never
+  include fixtures or sample copy.
 
 ## Content rules
 

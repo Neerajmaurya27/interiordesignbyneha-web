@@ -1,0 +1,68 @@
+---
+/**
+ * Home — seven chapters in order (brief §7). Each chapter renders only when its content exists:
+ * production builds use verified content from src/data/home.ts and published projects; `astro
+ * dev` fills the gaps with labelled fixtures so the full page can be reviewed.
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/home/Hero.astro';
+import SelectedWork from '../components/home/SelectedWork.astro';
+import DesignInDetail from '../components/home/DesignInDetail.astro';
+import PointOfView from '../components/home/PointOfView.astro';
+import ProcessSteps from '../components/home/ProcessSteps.astro';
+import Credibility, { type PressItem } from '../components/home/Credibility.astro';
+import EnquiryBand from '../components/home/EnquiryBand.astro';
+import DevPreviewNotice from '../components/ui/DevPreviewNotice.astro';
+import { enquiryCta, site } from '../data/site';
+import { loadHome } from '../data/home';
+import { getProjects } from '../lib/projects';
+import { featuredForHome } from '../lib/project-rules';
+import { routeExists } from '../lib/routes';
+
+const { content: home, usesSample } = await loadHome();
+const projects = await getProjects();
+const featured = featuredForHome(projects);
+
+let press: PressItem[] = (await getCollection('press'))
+  .filter((p) => p.data.verified)
+  .map((p) => p.data)
+  .sort((a, b) => b.year - a.year)
+  .slice(0, 5);
+let testimonial =
+  (await getCollection('testimonials'))
+    .map((t) => t.data)
+    .find((t) => t.verified && t.permissionRef.length > 0) ?? null;
+
+if (import.meta.env.DEV && press.length === 0 && !testimonial) {
+  const { sampleCredibility } = await import('../fixtures/home/sample');
+  press = sampleCredibility.press;
+  testimonial = { ...sampleCredibility.testimonial, verified: false, permissionRef: 'sample' };
+}
+
+const showCta = routeExists(enquiryCta.href);
+const hasWhatsApp = site.offices.some((o) => o.whatsapp);
+const pageName = 'Home';
+---
+
+<BaseLayout
+  title={`${site.name} | Interior design in Mumbai and Dubai`}
+  description={site.description}
+  {pageName}
+  overHero={home.hero !== null}
+>
+  <Hero
+    hero={home.hero}
+    fallbackHeadline={home.fallbackHeadline}
+    workAnchor={featured.length > 0 ? '#selected-work' : null}
+  />
+  {featured.length > 0 && <SelectedWork projects={featured} handOff={home.selectedWorkHandOff} />}
+  {home.details.length > 0 && <DesignInDetail details={home.details} />}
+  {home.pointOfView && <PointOfView pointOfView={home.pointOfView} />}
+  {home.process && home.process.steps.length > 0 && <ProcessSteps process={home.process} />}
+  {(press.length > 0 || testimonial) && <Credibility {press} {testimonial} />}
+  {(showCta || hasWhatsApp) && (
+    <EnquiryBand enquiry={home.enquiry} {showCta} pageTitle={pageName} />
+  )}
+  {usesSample && <DevPreviewNotice />}
+</BaseLayout>

@@ -10,7 +10,7 @@ const { number, tone = 'default', as: Tag = 'p' } = Astro.props;
 const prefix = number === undefined ? '' : `${String(number).padStart(2, '0')} — `;
 ---
 
-<Tag class:list={['type-label', tone === 'on-espresso' ? 'text-sand' : 'text-taupe']}>
+<Tag class:list={['type-label font-sans', tone === 'on-espresso' ? 'text-sand' : 'text-taupe']}>
   {prefix}
   <slot />
 </Tag>

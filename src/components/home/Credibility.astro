@@ -1,0 +1,75 @@
+---
+/**
+ * Chapter 06 — Credibility (brief §7). Named publications/honours with years and one discreetly
+ * attributed quote held with written permission. The page renders this only when at least one
+ * verified item exists, so an empty chapter never leaves a gap.
+ */
+import ChapterLabel from '../ui/ChapterLabel.astro';
+
+export interface PressItem {
+  publication: string;
+  title: string;
+  year: number;
+  url?: string | undefined;
+}
+
+interface Props {
+  press: PressItem[];
+  testimonial: { quote: string; attribution: string } | null;
+}
+
+const { press, testimonial } = Astro.props;
+---
+
+<section
+  aria-labelledby="credibility-heading"
+  class="bg-paper py-(--spacing-section)"
+  data-chapter="06"
+>
+  <div class="grid-page gap-y-12">
+    <h2 id="credibility-heading" class="col-span-full">
+      <ChapterLabel number={6} as="span">
+        Recognition
+      </ChapterLabel>
+    </h2>
+    {press.length > 0 && (
+      <ul class="col-span-full grid gap-8 tablet:grid-cols-3" aria-label="Press and recognition">
+        {press.map((item) => (
+          <li class="flex flex-col gap-1 border-t border-hairline pt-4" data-reveal>
+            <span class="font-medium">
+              {item.url ? (
+                <a
+                  href={item.url}
+                  class="underline decoration-1 underline-offset-[0.2em] hover:decoration-2"
+                  rel="noopener"
+                  target="_blank"
+                >
+                  {item.publication}
+                </a>
+              ) : (
+                item.publication
+              )}
+            </span>
+            <span>{item.title}</span>
+            <span class="text-caption text-taupe">{item.year}</span>
+          </li>
+        ))}
+      </ul>
+    )}
+    {testimonial && (
+      <figure
+        class="col-span-full flex flex-col gap-4 desktop:col-span-8 desktop:col-start-3"
+        data-reveal="text"
+      >
+        <blockquote class="type-statement">
+          <p>“{testimonial.quote}”</p>
+        </blockquote>
+        <figcaption class="text-caption text-taupe">{testimonial.attribution}</figcaption>
+      </figure>
+    )}
+  </div>
+</section>
+
+<script>
+  import '../../scripts/reveal';
+</script>

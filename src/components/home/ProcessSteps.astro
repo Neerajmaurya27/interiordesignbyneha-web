@@ -1,0 +1,75 @@
+---
+/**
+ * Chapter 05 — Process and delivery (brief §7). Five steps: a row on desktop, a vertical list on
+ * mobile (no carousel). One sentence and an optional small photo per step; reveal stagger capped
+ * at three items. One line on delivery per city, only once it matches the real model [V3].
+ */
+import Picture from '../ui/Picture.astro';
+import ChapterLabel from '../ui/ChapterLabel.astro';
+import TextLink from '../ui/TextLink.astro';
+import type { HomeContent } from '../../data/home';
+import { routeExists } from '../../lib/routes';
+
+interface Props {
+  process: NonNullable<HomeContent['process']>;
+}
+
+const { process } = Astro.props;
+const showApproach = routeExists('/approach');
+---
+
+<section
+  aria-labelledby="process-heading"
+  class="bg-linen py-(--spacing-section)"
+  data-chapter="05"
+>
+  <div class="grid-page gap-y-12">
+    <div class="col-span-full flex flex-col gap-6 desktop:col-span-6">
+      <h2 id="process-heading">
+        <ChapterLabel number={5} as="span">
+          Process and delivery
+        </ChapterLabel>
+      </h2>
+    </div>
+
+    <ol class="col-span-full grid gap-8 tablet:grid-cols-2 tablet:gap-10 desktop:grid-cols-5 desktop:gap-6">
+      {process.steps.map((step, i) => (
+        <li
+          class="grid grid-cols-[5.5rem_1fr] content-start gap-x-4 gap-y-2 tablet:flex tablet:flex-col tablet:gap-3"
+          data-reveal
+          style={`--reveal-index: ${Math.min(i, 2)}`}
+        >
+          {step.image && (
+            <Picture
+              src={step.image.src}
+              alt={step.image.alt}
+              sizes="(min-width: 64rem) 18vw, (min-width: 37.5rem) 45vw, 88px"
+              imgClass="w-full aspect-square object-cover tablet:aspect-[4/3]"
+              class="row-span-3 block"
+            />
+          )}
+          <span class="type-label text-taupe" aria-hidden="true">
+            {String(i + 1).padStart(2, '0')}
+          </span>
+          <h3>{step.title}</h3>
+          <p>{step.text}</p>
+        </li>
+      ))}
+    </ol>
+
+    {(process.delivery || showApproach) && (
+      <div class="col-span-full flex flex-col gap-6 desktop:col-span-8">
+        {process.delivery && <p class="type-statement">{process.delivery}</p>}
+        {showApproach && (
+          <p>
+            <TextLink href="/approach">See the full process and services</TextLink>
+          </p>
+        )}
+      </div>
+    )}
+  </div>
+</section>
+
+<script>
+  import '../../scripts/reveal';
+</script>

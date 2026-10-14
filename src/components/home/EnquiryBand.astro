@@ -1,0 +1,77 @@
+---
+/**
+ * Chapter 07 — Begin a conversation (brief §7). Espresso band with limewash text.
+ * Primary action is a paper-outline button (never terracotta on espresso); WhatsApp links per
+ * verified number; the reply promise once confirmed. Renders only when there is at least one way
+ * to act, so it never ends in a dead end. Hides the sticky mobile enquiry bar while in view.
+ */
+import Button from '../ui/Button.astro';
+import ChapterLabel from '../ui/ChapterLabel.astro';
+import WhatsAppLink from '../site/WhatsAppLink.astro';
+import { enquiryCta, site } from '../../data/site';
+import type { HomeContent } from '../../data/home';
+
+interface Props {
+  enquiry: HomeContent['enquiry'];
+  showCta: boolean;
+  pageTitle: string;
+}
+
+const { enquiry, showCta, pageTitle } = Astro.props;
+const whatsappOffices = site.offices.filter((o) => o.whatsapp);
+const link =
+  'text-sand underline decoration-1 underline-offset-[0.2em] hover:decoration-2 hover:text-paper';
+---
+
+<section
+  aria-labelledby="enquiry-heading"
+  class="on-espresso bg-espresso py-(--spacing-section) text-limewash"
+  data-chapter="07"
+  data-enquiry-bar-hide
+>
+  <div class="grid-page gap-y-10">
+    <div class="col-span-full flex flex-col gap-6 desktop:col-span-8">
+      <ChapterLabel number={7} tone="on-espresso">
+        Begin a conversation
+      </ChapterLabel>
+      <h2 id="enquiry-heading">{enquiry.heading}</h2>
+      {enquiry.support && <p class="text-sand">{enquiry.support}</p>}
+      {enquiry.suitability.length > 0 && (
+        <ul class="flex flex-col gap-2 text-sand">
+          {enquiry.suitability.map((fact) => (
+            <li class="flex gap-3">
+              <span aria-hidden="true" class="text-brass">
+                —
+              </span>
+              {fact}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+
+    <div class="col-span-full flex flex-col gap-6 tablet:flex-row tablet:items-center tablet:gap-10">
+      {showCta && (
+        <Button
+          href={enquiryCta.href}
+          variant="on-espresso"
+          class="w-full tablet:w-auto"
+          data-analytics="cta_click"
+          data-location="home-enquiry-band"
+        >
+          {enquiryCta.label}
+        </Button>
+      )}
+      {whatsappOffices.length > 0 && (
+        <ul class="flex flex-wrap gap-x-8 gap-y-3">
+          {whatsappOffices.map((office) => (
+            <li>
+              <WhatsAppLink region={office.region} from={pageTitle} class={link} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+    {site.replyPromise && <p class="col-span-full text-caption text-sand">{site.replyPromise}</p>}
+  </div>
+</section>

@@ -1,0 +1,202 @@
+---
+/**
+ * Chapter 02 — Selected work (brief §7). Three featured projects, each in a different spread:
+ *  A  full-width landscape, facts below (mobile adds a second 4:5 image when available)
+ *  B  two offset portraits, text under the first (falls back to C without two portraits)
+ *  C  large landscape across columns 2–12 with a one-line hook
+ * Facts are always visible (never hover-only). DOM order matches visual order at every width.
+ * The lead image carries a unique view-transition-name for the card → case-study morph.
+ */
+import Picture from '../ui/Picture.astro';
+import ChapterLabel from '../ui/ChapterLabel.astro';
+import TextLink from '../ui/TextLink.astro';
+import DevBadge from '../ui/DevBadge.astro';
+import type { Project } from '../../lib/projects';
+import { factsLine } from '../../lib/project-rules';
+import { routeExists } from '../../lib/routes';
+
+interface Props {
+  projects: Project[];
+  handOff: string | null;
+}
+
+const { projects, handOff } = Astro.props;
+const linkProjects = routeExists('/projects/[slug]');
+const showAll = routeExists('/projects');
+
+type Spread = 'A' | 'B' | 'C';
+const items = projects.map((project, i) => {
+  const portraits = project.homeImages.filter((img) => img.orientation === 'portrait');
+  let spread: Spread = (['A', 'B', 'C'] as const)[i % 3]!;
+  if (spread === 'B' && portraits.length < 2) spread = 'C';
+  return { project, spread, portraits, href: `/projects/${project.slug}` };
+});
+
+const LinkTag = linkProjects ? 'a' : 'div';
+
+const placement: Record<Spread, { lead: string; text: string }> = {
+  A: { lead: 'col-span-full', text: 'col-span-full desktop:col-span-6' },
+  B: {
+    lead: 'col-span-full tablet:col-span-4 desktop:col-span-5 desktop:col-start-2',
+    text: 'col-span-full tablet:col-span-4 desktop:col-span-5 desktop:col-start-2',
+  },
+  C: {
+    lead: 'col-span-full desktop:col-span-11 desktop:col-start-2',
+    text: 'col-span-full desktop:col-span-6 desktop:col-start-2',
+  },
+};
+
+const leadSizes: Record<Spread, string> = {
+  A: '(min-width: 90rem) 1248px, 100vw',
+  B: '(min-width: 64rem) 36vw, (min-width: 37.5rem) 50vw, 100vw',
+  C: '(min-width: 64rem) 90vw, 100vw',
+};
+---
+
+<section
+  id="selected-work"
+  aria-labelledby="selected-work-heading"
+  class="py-(--spacing-section)"
+  data-chapter="02"
+>
+  <div class="grid-page mb-12 desktop:mb-16">
+    <h2 id="selected-work-heading" class="col-span-full">
+      <ChapterLabel number={2} as="span">
+        Selected work
+      </ChapterLabel>
+    </h2>
+  </div>
+
+  <div class="flex flex-col gap-20 desktop:gap-28">
+    {items.map(({ project, spread, portraits, href }) => (
+      <article
+        class="grid-page gap-y-6"
+        aria-labelledby={`work-${project.slug}`}
+        style={`--vt: project-${project.slug}`}
+      >
+        <LinkTag
+          href={linkProjects ? href : undefined}
+          class:list={['work-image vt-lead block', placement[spread].lead]}
+          data-reveal
+        >
+          {spread === 'B' ? (
+            <Picture
+              src={portraits[0]!.src}
+              alt={portraits[0]!.alt}
+              sizes={leadSizes.B}
+              imgClass="w-full"
+              class="block"
+            />
+          ) : (
+            <Picture
+              src={project.hero.desktop}
+              mobileSrc={project.hero.mobile}
+              alt={project.hero.alt}
+              sizes={leadSizes[spread]}
+              widthSet={spread === 'A' ? 'full-bleed' : 'grid'}
+              focal={project.hero.focal}
+              imgClass="w-full"
+              class="block"
+            />
+          )}
+        </LinkTag>
+
+        {spread === 'A' && portraits[0] && (
+          <div class="work-image col-span-full tablet:hidden" data-reveal>
+            <Picture
+              src={portraits[0].src}
+              alt={portraits[0].alt}
+              sizes="100vw"
+              imgClass="w-full"
+            />
+          </div>
+        )}
+
+        {spread === 'B' && (
+          <div
+            class="work-image col-span-full hidden tablet:col-span-4 tablet:row-span-2 tablet:block desktop:col-span-5 desktop:col-start-8 desktop:mt-24"
+            data-reveal
+            style="--reveal-index: 1"
+          >
+            <Picture
+              src={portraits[1]!.src}
+              alt={portraits[1]!.alt}
+              sizes="(min-width: 64rem) 36vw, 50vw"
+              imgClass="w-full"
+            />
+          </div>
+        )}
+
+        <div
+          class:list={['flex flex-col gap-2', placement[spread].text]}
+          data-reveal="text"
+          style="--reveal-index: 1"
+        >
+          <h3
+            id={`work-${project.slug}`}
+            class="font-display text-h2 leading-(--text-h2--line-height) font-light"
+          >
+            {project.title}
+            {project.isFixture && <DevBadge />}
+          </h3>
+          <p class="text-caption text-taupe">{factsLine(project)}</p>
+          <p class="max-w-(--container-text)">{project.essence}</p>
+          {linkProjects && (
+            <p class="pt-2">
+              <TextLink href={href}>
+                View project<span class="sr-only">: {project.title}</span>
+              </TextLink>
+            </p>
+          )}
+        </div>
+      </article>
+    ))}
+  </div>
+
+  {(handOff || showAll) && (
+    <div class="grid-page mt-24 gap-y-8 desktop:mt-32">
+      {handOff && (
+        <p
+          class="type-statement col-span-full desktop:col-span-8 desktop:col-start-2"
+          data-reveal="text"
+        >
+          {handOff}
+        </p>
+      )}
+      {showAll && (
+        <p class="col-span-full desktop:col-start-2">
+          <TextLink href="/projects">All projects</TextLink>
+        </p>
+      )}
+    </div>
+  )}
+</section>
+
+<style>
+  .work-image {
+    overflow: clip;
+    background-color: var(--color-stone);
+  }
+
+  /* Purpose: continuity — the lead image morphs into the case-study hero. */
+  @media (prefers-reduced-motion: no-preference) {
+    .vt-lead {
+      view-transition-name: var(--vt);
+    }
+  }
+
+  /* Purpose: emphasis — a slight scale on desktop hover; transform only. */
+  @media (hover: hover) and (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+    .work-image :global(img) {
+      transition: transform var(--dur-reveal-transform) var(--ease-out);
+    }
+
+    article:has(a:hover) .work-image :global(img) {
+      transform: scale(var(--image-scale-max));
+    }
+  }
+</style>
+
+<script>
+  import '../../scripts/reveal';
+</script>

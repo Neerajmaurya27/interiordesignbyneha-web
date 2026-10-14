@@ -1,0 +1,119 @@
+---
+/**
+ * Chapter 01 — First impression (brief §7).
+ * With a photograph: full-bleed, 88svh desktop / 82svh mobile so chapter 02 peeks. Separate
+ * hand-cropped desktop and mobile images, real <img> with fetchpriority="high" — this is the
+ * LCP element, so it is never lazy and never animated. Headline bottom-left over an espresso
+ * gradient (≥65% behind small text, ≥55% behind the headline); caption bottom-right on desktop,
+ * below the image on mobile.
+ * Without a photograph: a text-only opening on limewash (no overHero).
+ */
+import Picture from '../ui/Picture.astro';
+import TextLink from '../ui/TextLink.astro';
+import type { HomeContent } from '../../data/home';
+
+interface Props {
+  hero: HomeContent['hero'];
+  fallbackHeadline: string;
+  /** Anchor to chapter 02, only when it renders. */
+  workAnchor: string | null;
+}
+
+const { hero, fallbackHeadline, workAnchor } = Astro.props;
+---
+
+{hero ? (
+  <section class="hero" aria-labelledby="hero-heading" data-enquiry-bar-start data-chapter="01">
+    <div class="hero-media">
+      <Picture
+        src={hero.desktop}
+        mobileSrc={hero.mobile}
+        alt={hero.alt}
+        sizes="100vw"
+        widthSet="full-bleed"
+        priority
+        focal={hero.focal}
+        class="absolute inset-0 block"
+        imgClass="h-full w-full object-cover"
+      />
+      <div class="hero-scrim" aria-hidden="true" />
+      <div class="grid-page absolute inset-x-0 bottom-0 items-end gap-y-4 pb-10 desktop:pb-16">
+        <div class="col-span-full flex flex-col gap-4 text-paper desktop:col-span-7">
+          <h1 id="hero-heading" class="type-display">
+            {hero.headline}
+          </h1>
+          {hero.support && <p class="max-w-(--container-text) text-paper">{hero.support}</p>}
+          {workAnchor && (
+            <p>
+              <TextLink href={workAnchor} tone="inherit" class="font-medium">
+                See selected work
+              </TextLink>
+            </p>
+          )}
+        </div>
+        {hero.caption && (
+          <p class="col-span-full hidden self-end text-end text-caption text-paper desktop:col-span-4 desktop:col-start-9 desktop:block">
+            {hero.caption}
+          </p>
+        )}
+      </div>
+    </div>
+    {hero.caption && (
+      <p class="grid-page pt-3 text-caption text-taupe desktop:hidden">
+        <span class="col-span-full">{hero.caption}</span>
+      </p>
+    )}
+  </section>
+) : (
+  <section
+    class="grid-page pt-16 pb-12 desktop:pt-32 desktop:pb-24"
+    aria-labelledby="hero-heading"
+    data-enquiry-bar-start
+    data-chapter="01"
+  >
+    <div class="col-span-full flex flex-col gap-6 desktop:col-span-9">
+      <h1 id="hero-heading" class="type-display">
+        {fallbackHeadline}
+      </h1>
+      {workAnchor && (
+        <p>
+          <TextLink href={workAnchor}>See selected work</TextLink>
+        </p>
+      )}
+    </div>
+  </section>
+)}
+
+<style>
+  .hero-media {
+    position: relative;
+    block-size: 82svh;
+    overflow: clip;
+    background-color: var(--color-stone);
+  }
+
+  @media (min-width: 64rem) {
+    .hero-media {
+      block-size: 88svh;
+    }
+  }
+
+  /*
+   * Bottom 45% espresso scrim: 80% at the very bottom (small text and caption sit there),
+   * ≥65% through the support line, ≥55% behind the headline, fading out above it.
+   * The real image must be sampled at launch to confirm contrast.
+   */
+  .hero-scrim {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    block-size: 55%;
+    background-image: linear-gradient(
+      to top,
+      color-mix(in srgb, var(--color-espresso) 80%, transparent) 0%,
+      color-mix(in srgb, var(--color-espresso) 68%, transparent) 35%,
+      color-mix(in srgb, var(--color-espresso) 56%, transparent) 65%,
+      transparent 100%
+    );
+  }
+</style>
